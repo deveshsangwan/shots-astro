@@ -1,0 +1,354 @@
+---
+import PhotoLightbox from "@/components/lightbox/PhotoLightbox.astro";
+import type { PhotoViewModel } from "@/types/photo";
+
+interface Props {
+  photos: PhotoViewModel[];
+  tags: string[];
+  cameras: string[];
+  years: string[];
+}
+
+const { photos, tags, cameras, years } = Astro.props;
+const serializedPhotos = JSON.stringify(photos);
+---
+
+<section class="mx-auto w-full max-w-7xl px-5 py-8 md:px-8 md:py-12">
+  <div class="mb-8 grid gap-4 rounded-xl border border-white/10 bg-surface/70 p-4 md:grid-cols-4">
+    <label class="space-y-2 text-sm text-muted">
+      <span class="block">Search</span>
+      <input
+        id="filter-query"
+        class="w-full rounded-md border border-white/15 bg-bg/70 px-3 py-2 text-sm text-text outline-none transition-colors focus:border-accent/60"
+        type="search"
+        placeholder="Title, description, or place"
+      />
+    </label>
+    <label class="space-y-2 text-sm text-muted">
+      <span class="block">Tag</span>
+      <select
+        id="filter-tag"
+        class="w-full rounded-md border border-white/15 bg-bg/70 px-3 py-2 text-sm text-text outline-none transition-colors focus:border-accent/60"
+      >
+        <option value="">All tags</option>
+        {tags.map((tag) => (
+          <option value={tag}>{tag}</option>
+        ))}
+      </select>
+    </label>
+    <label class="space-y-2 text-sm text-muted">
+      <span class="block">Camera</span>
+      <select
+        id="filter-camera"
+        class="w-full rounded-md border border-white/15 bg-bg/70 px-3 py-2 text-sm text-text outline-none transition-colors focus:border-accent/60"
+      >
+        <option value="">All cameras</option>
+        {cameras.map((camera) => (
+          <option value={camera}>{camera}</option>
+        ))}
+      </select>
+    </label>
+    <label class="space-y-2 text-sm text-muted">
+      <span class="block">Year</span>
+      <select
+        id="filter-year"
+        class="w-full rounded-md border border-white/15 bg-bg/70 px-3 py-2 text-sm text-text outline-none transition-colors focus:border-accent/60"
+      >
+        <option value="">All years</option>
+        {years.map((year) => (
+          <option value={year}>{year}</option>
+        ))}
+      </select>
+    </label>
+  </div>
+
+  <div class="mb-6 flex items-center justify-between gap-2">
+    <p id="visible-count" class="text-sm text-muted"></p>
+    <button
+      id="clear-filters"
+      type="button"
+      class="rounded-full border border-white/15 px-4 py-2 text-xs tracking-[0.2em] text-muted uppercase transition-colors hover:border-accent/40 hover:text-accent"
+    >
+      Reset filters
+    </button>
+  </div>
+
+  {
+    photos.length > 0 ? (
+      <div id="photo-grid" class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {photos.map((photo) => (
+          <article
+            class="group overflow-hidden rounded-xl border border-white/10 bg-surface/80 transition-transform duration-medium hover:-translate-y-1 hover:shadow-elevated"
+            data-photo-card
+            data-photo-id={photo.id}
+            data-title={photo.title.toLowerCase()}
+            data-description={photo.description.toLowerCase()}
+            data-location={photo.location.toLowerCase()}
+            data-camera={photo.camera}
+            data-year={photo.year}
+            data-tags={photo.tags.join("|")}
+          >
+            <button
+              class="w-full cursor-pointer text-left"
+              type="button"
+              data-open-lightbox={photo.id}
+              aria-label={`Open ${photo.title}`}
+            >
+              <div class="relative overflow-hidden">
+                <img
+                  src={photo.thumbnail.src}
+                  width={photo.thumbnail.width}
+                  height={photo.thumbnail.height}
+                  alt={photo.title}
+                  loading="lazy"
+                  class="h-72 w-full object-cover transition-transform duration-slow group-hover:scale-[1.03]"
+                />
+                {photo.featured && (
+                  <span class="absolute left-3 top-3 rounded-full bg-accent px-3 py-1 text-xs font-medium text-black">
+                    Featured
+                  </span>
+                )}
+              </div>
+              <div class="space-y-2 p-4">
+                <p class="font-display text-xl text-text">{photo.title}</p>
+                <p class="line-clamp-2 text-sm leading-6 text-muted">{photo.description}</p>
+                <div class="flex flex-wrap gap-2">
+                  {photo.tags.map((tag) => (
+                    <span class="rounded-full border border-white/15 px-2.5 py-1 text-xs text-muted">{tag}</span>
+                  ))}
+                </div>
+                <p class="pt-2 text-xs tracking-[0.2em] text-accent/80 uppercase">
+                  Click to open lightbox
+                </p>
+              </div>
+            </button>
+            <a
+              href={`/photo/${photo.id}/`}
+              class="block border-t border-white/10 px-4 py-3 text-xs tracking-[0.16em] text-muted uppercase transition-colors hover:text-accent"
+            >
+              Open detail page
+            </a>
+          </article>
+        ))}
+      </div>
+    ) : (
+      <div class="rounded-xl border border-dashed border-white/20 bg-surface/40 px-6 py-12 text-center">
+        <p class="font-display text-2xl text-text">No photos yet</p>
+        <p class="mx-auto mt-3 max-w-xl text-sm leading-7 text-muted">
+          Add your first image with <code class="rounded bg-black/40 px-2 py-1 text-accent">npm run add-photo -- --input /path/to/image.jpg --title "My Shot"</code>.
+        </p>
+      </div>
+    )
+  }
+
+  <p id="empty-filter-state" class="mt-6 hidden rounded-xl border border-dashed border-white/20 bg-surface/40 px-6 py-8 text-center text-muted">
+    No photos match these filters. Try broadening your search.
+  </p>
+</section>
+
+<PhotoLightbox />
+
+<script id="photo-data" type="application/json" is:inline set:html={serializedPhotos}></script>
+<script is:inline>
+  // @ts-nocheck
+  const text = (elementId) => document.getElementById(elementId);
+  const input = (elementId) => document.getElementById(elementId);
+  const select = (elementId) => document.getElementById(elementId);
+
+  const photosDataElement = text("photo-data");
+  const photosData = photosDataElement?.textContent ? JSON.parse(photosDataElement.textContent) : [];
+  const photosById = new Map(photosData.map((photo) => [String(photo.id), photo]));
+
+  const cards = Array.from(document.querySelectorAll("[data-photo-card]"));
+  const countElement = text("visible-count");
+  const emptyFilterState = text("empty-filter-state");
+
+  const queryInput = input("filter-query");
+  const tagSelect = select("filter-tag");
+  const cameraSelect = select("filter-camera");
+  const yearSelect = select("filter-year");
+  const clearButton = document.getElementById("clear-filters");
+
+  const dialog = document.getElementById("photo-lightbox");
+  const dialogImage = document.getElementById("lightbox-image");
+  const dialogTitle = text("lightbox-title");
+  const dialogDescription = text("lightbox-description");
+  const dialogDate = text("lightbox-date");
+  const dialogLocation = text("lightbox-location");
+  const dialogCamera = text("lightbox-camera");
+  const dialogLens = text("lightbox-lens");
+  const dialogAperture = text("lightbox-aperture");
+  const dialogShutter = text("lightbox-shutter");
+  const dialogIso = text("lightbox-iso");
+  const dialogFocalLength = text("lightbox-focal-length");
+  const dialogPosition = text("lightbox-position");
+  const prevButton = document.getElementById("lightbox-prev");
+  const nextButton = document.getElementById("lightbox-next");
+  const closeButton = document.getElementById("lightbox-close");
+  const mediaContainer = document.getElementById("lightbox-media-container");
+
+  if (!queryInput || !tagSelect || !cameraSelect || !yearSelect || !dialog || !dialogImage) {
+    throw new Error("Required gallery elements are missing from the DOM.");
+  }
+
+  let filteredPhotoIds = [];
+  let activeIndex = -1;
+  let touchStartX = null;
+  let touchEndX = null;
+
+  const normalize = (value) => String(value ?? "").toLowerCase().trim();
+
+  const updateURL = () => {
+    const params = new URLSearchParams();
+    if (queryInput.value.trim()) params.set("q", queryInput.value.trim());
+    if (tagSelect.value) params.set("tag", tagSelect.value);
+    if (cameraSelect.value) params.set("camera", cameraSelect.value);
+    if (yearSelect.value) params.set("year", yearSelect.value);
+
+    const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}`;
+    window.history.replaceState({}, "", next);
+  };
+
+  const readFromURL = () => {
+    const params = new URLSearchParams(window.location.search);
+    queryInput.value = params.get("q") ?? "";
+    tagSelect.value = params.get("tag") ?? "";
+    cameraSelect.value = params.get("camera") ?? "";
+    yearSelect.value = params.get("year") ?? "";
+  };
+
+  const applyFilters = () => {
+    const query = normalize(queryInput.value);
+    const selectedTag = tagSelect.value;
+    const selectedCamera = cameraSelect.value;
+    const selectedYear = yearSelect.value;
+    filteredPhotoIds = [];
+
+    cards.forEach((card) => {
+      const title = card.getAttribute("data-title") ?? "";
+      const description = card.getAttribute("data-description") ?? "";
+      const location = card.getAttribute("data-location") ?? "";
+      const tags = (card.getAttribute("data-tags") ?? "").split("|").filter(Boolean);
+      const camera = card.getAttribute("data-camera") ?? "";
+      const year = card.getAttribute("data-year") ?? "";
+
+      const matchQuery = !query || title.includes(query) || description.includes(query) || location.includes(query);
+      const matchTag = !selectedTag || tags.includes(selectedTag);
+      const matchCamera = !selectedCamera || camera === selectedCamera;
+      const matchYear = !selectedYear || year === selectedYear;
+      const isVisible = matchQuery && matchTag && matchCamera && matchYear;
+
+      card.classList.toggle("hidden", !isVisible);
+      if (isVisible) {
+        const id = card.getAttribute("data-photo-id");
+        if (id) filteredPhotoIds.push(id);
+      }
+    });
+
+    if (countElement) countElement.textContent = `${filteredPhotoIds.length} of ${photosData.length} photos`;
+    if (emptyFilterState) {
+      emptyFilterState.classList.toggle("hidden", filteredPhotoIds.length !== 0 || photosData.length === 0);
+    }
+
+    updateURL();
+  };
+
+  const fill = (element, value) => {
+    if (!element) return;
+    element.textContent = value || "—";
+  };
+
+  const renderActivePhoto = () => {
+    if (activeIndex < 0 || activeIndex >= filteredPhotoIds.length) return;
+    const currentId = filteredPhotoIds[activeIndex];
+    const currentPhoto = photosById.get(currentId);
+    if (!currentPhoto) return;
+
+    dialogImage.setAttribute("src", currentPhoto.full.src);
+    dialogImage.setAttribute("alt", currentPhoto.title);
+    fill(dialogTitle, currentPhoto.title);
+    fill(dialogDescription, currentPhoto.description);
+    fill(dialogDate, new Date(currentPhoto.publishedAt).toLocaleDateString());
+    fill(dialogLocation, currentPhoto.location);
+    fill(dialogCamera, currentPhoto.camera);
+    fill(dialogLens, currentPhoto.lens);
+    fill(dialogAperture, currentPhoto.aperture);
+    fill(dialogShutter, currentPhoto.shutter);
+    fill(dialogIso, currentPhoto.iso);
+    fill(dialogFocalLength, currentPhoto.focalLength);
+    fill(dialogPosition, `${activeIndex + 1} / ${filteredPhotoIds.length}`);
+  };
+
+  const openLightbox = (photoId) => {
+    if (filteredPhotoIds.length === 0) return;
+    activeIndex = filteredPhotoIds.indexOf(photoId);
+    if (activeIndex < 0) activeIndex = 0;
+    renderActivePhoto();
+    dialog.showModal();
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeLightbox = () => {
+    dialog.close();
+    document.body.style.overflow = "";
+    activeIndex = -1;
+  };
+
+  const stepLightbox = (delta) => {
+    if (filteredPhotoIds.length <= 1) return;
+    activeIndex = (activeIndex + delta + filteredPhotoIds.length) % filteredPhotoIds.length;
+    renderActivePhoto();
+  };
+
+  document.querySelectorAll("[data-open-lightbox]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const id = button.getAttribute("data-open-lightbox");
+      if (!id) return;
+      openLightbox(id);
+    });
+  });
+
+  queryInput.addEventListener("input", applyFilters);
+  tagSelect.addEventListener("change", applyFilters);
+  cameraSelect.addEventListener("change", applyFilters);
+  yearSelect.addEventListener("change", applyFilters);
+  clearButton?.addEventListener("click", () => {
+    queryInput.value = "";
+    tagSelect.value = "";
+    cameraSelect.value = "";
+    yearSelect.value = "";
+    applyFilters();
+  });
+
+  prevButton?.addEventListener("click", () => stepLightbox(-1));
+  nextButton?.addEventListener("click", () => stepLightbox(1));
+  closeButton?.addEventListener("click", closeLightbox);
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) closeLightbox();
+  });
+  dialog.addEventListener("close", () => {
+    document.body.style.overflow = "";
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (!dialog.open) return;
+    if (event.key === "Escape") closeLightbox();
+    if (event.key === "ArrowLeft") stepLightbox(-1);
+    if (event.key === "ArrowRight") stepLightbox(1);
+  });
+
+  mediaContainer?.addEventListener("touchstart", (event) => {
+    touchStartX = event.changedTouches[0]?.screenX ?? null;
+  });
+  mediaContainer?.addEventListener("touchend", (event) => {
+    touchEndX = event.changedTouches[0]?.screenX ?? null;
+    if (touchStartX == null || touchEndX == null) return;
+    const delta = touchStartX - touchEndX;
+    if (Math.abs(delta) < 50) return;
+    if (delta > 0) stepLightbox(1);
+    if (delta < 0) stepLightbox(-1);
+  });
+
+  readFromURL();
+  applyFilters();
+</script>

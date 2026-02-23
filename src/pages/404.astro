@@ -1,0 +1,21 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Page not found" noIndex>
+  <main class="grid min-h-screen place-items-center px-6">
+    <div class="max-w-lg rounded-xl border border-white/10 bg-surface/60 p-8 text-center">
+      <p class="text-xs tracking-[0.2em] text-muted uppercase">404</p>
+      <h1 class="mt-3 font-display text-4xl text-text">Frame not found</h1>
+      <p class="mt-4 text-sm leading-7 text-muted">
+        The page you are looking for does not exist. Head back to the gallery and keep exploring.
+      </p>
+      <a
+        href="/"
+        class="mt-6 inline-flex rounded-full border border-accent/40 px-5 py-2.5 text-sm text-accent transition-colors hover:bg-accent/10"
+      >
+        Back to gallery
+      </a>
+    </div>
+  </main>
+</BaseLayout>

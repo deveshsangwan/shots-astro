@@ -1,0 +1,24 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import SiteHeader from "@/components/SiteHeader.astro";
+import SiteFooter from "@/components/SiteFooter.astro";
+import { siteConfig } from "@/config/site";
+---
+
+<BaseLayout title={`About | ${siteConfig.title}`} description={siteConfig.footer.bio}>
+  <SiteHeader />
+
+  <main class="mx-auto w-full max-w-4xl px-5 py-12 md:px-8 md:py-20">
+    <p class="text-xs tracking-[0.2em] text-muted uppercase">About</p>
+    <h1 class="mt-3 font-display text-5xl text-text">Photography with intent.</h1>
+    <p class="mt-6 text-base leading-8 text-muted">
+      {siteConfig.footer.bio} I built this portfolio as a fast, clean, and distraction-free space to share frames that matter to me.
+      Every image includes capture metadata and contextual notes to make the story behind the shot as discoverable as the photo itself.
+    </p>
+    <p class="mt-5 text-base leading-8 text-muted">
+      This site runs on Astro with a file-based workflow so new photographs can be published quickly while keeping full ownership of assets and metadata.
+    </p>
+  </main>
+
+  <SiteFooter />
+</BaseLayout>

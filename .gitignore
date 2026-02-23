@@ -69,8 +69,15 @@ build/Release
 node_modules
 jspm_packages
 
+### Astro template
+dist/
+.astro/
+
 # Optional npm cache directory
 .npm
+
+# Bun-first repository: keep npm lockfile out.
+package-lock.json
 
 # Optional REPL history
 .node_repl_history

@@ -1,0 +1,95 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import SiteHeader from "@/components/SiteHeader.astro";
+import SiteFooter from "@/components/SiteFooter.astro";
+import { siteConfig } from "@/config/site";
+
+export async function getStaticPaths() {
+  const photos = await getCollection("photos");
+  return photos.map((photo) => ({
+    params: { slug: photo.slug },
+    props: { photo }
+  }));
+}
+
+const { photo } = Astro.props;
+const publishedDate = new Date(photo.data.publishedAt);
+const pageTitle = `${photo.data.title} | ${siteConfig.title}`;
+const description = photo.data.description || siteConfig.description;
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ImageObject",
+  name: photo.data.title,
+  description,
+  contentUrl: new URL(photo.data.image.src, siteConfig.url).toString(),
+  datePublished: publishedDate.toISOString(),
+  author: {
+    "@type": "Person",
+    name: siteConfig.author
+  }
+};
+---
+
+<BaseLayout title={pageTitle} description={description} ogImage={`/social/${photo.slug}.svg`}>
+  <SiteHeader />
+
+  <main class="mx-auto grid w-full max-w-7xl gap-10 px-5 py-10 md:grid-cols-[1.5fr_1fr] md:px-8 md:py-14">
+    <section class="overflow-hidden rounded-xl border border-white/10 bg-surface/70">
+      <img
+        src={photo.data.image.src}
+        width={photo.data.image.width}
+        height={photo.data.image.height}
+        alt={photo.data.title}
+        class="w-full object-cover"
+      />
+    </section>
+    <aside class="space-y-5 rounded-xl border border-white/10 bg-surface/60 p-5">
+      <p class="text-xs tracking-[0.2em] text-muted uppercase">Photo details</p>
+      <h1 class="font-display text-4xl text-text">{photo.data.title}</h1>
+      {photo.data.description && <p class="text-sm leading-7 text-muted">{photo.data.description}</p>}
+      <dl class="grid grid-cols-2 gap-3 text-sm">
+        <div>
+          <dt class="text-muted">Published</dt>
+          <dd class="text-text">{publishedDate.toLocaleDateString()}</dd>
+        </div>
+        <div>
+          <dt class="text-muted">Location</dt>
+          <dd class="text-text">{photo.data.location || "—"}</dd>
+        </div>
+        <div>
+          <dt class="text-muted">Camera</dt>
+          <dd class="text-text">{photo.data.camera || "—"}</dd>
+        </div>
+        <div>
+          <dt class="text-muted">Lens</dt>
+          <dd class="text-text">{photo.data.lens || "—"}</dd>
+        </div>
+        <div>
+          <dt class="text-muted">Aperture</dt>
+          <dd class="text-text">{photo.data.settings?.aperture || "—"}</dd>
+        </div>
+        <div>
+          <dt class="text-muted">Shutter</dt>
+          <dd class="text-text">{photo.data.settings?.shutter || "—"}</dd>
+        </div>
+      </dl>
+      {photo.data.tags.length > 0 && (
+        <div class="flex flex-wrap gap-2">
+          {photo.data.tags.map((tag: string) => (
+            <span class="rounded-full border border-white/15 px-2.5 py-1 text-xs text-muted">{tag}</span>
+          ))}
+        </div>
+      )}
+      <a
+        href="/"
+        class="inline-flex rounded-full border border-accent/40 px-4 py-2 text-sm text-accent transition-colors hover:bg-accent/10"
+      >
+        Back to gallery
+      </a>
+    </aside>
+  </main>
+
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />
+  <SiteFooter />
+</BaseLayout>

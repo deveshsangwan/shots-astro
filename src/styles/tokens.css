@@ -1,0 +1,42 @@
+:root {
+  --color-bg: 12 12 14;
+  --color-surface: 24 24 30;
+  --color-muted: 118 118 133;
+  --color-text: 242 242 245;
+  --color-accent: 246 180 96;
+  --color-accent-soft: 255 218 171;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 2rem;
+  --space-8: 2.5rem;
+  --space-9: 3rem;
+  --space-10: 4rem;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
+
+  --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.22);
+  --shadow-elevated: 0 20px 50px rgba(0, 0, 0, 0.32);
+
+  --motion-fast: 120ms;
+  --motion-medium: 220ms;
+  --motion-slow: 340ms;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-bg: 248 248 251;
+    --color-surface: 255 255 255;
+    --color-muted: 96 98 110;
+    --color-text: 17 20 29;
+    --color-accent: 168 88 24;
+    --color-accent-soft: 235 196 151;
+  }
+}

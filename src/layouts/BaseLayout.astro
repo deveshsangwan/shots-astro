@@ -1,0 +1,59 @@
+---
+import "@/styles/global.css";
+import { siteConfig } from "@/config/site";
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  noIndex?: boolean;
+}
+
+const {
+  title = siteConfig.title,
+  description = siteConfig.description,
+  ogImage = "/social/og-default.svg",
+  noIndex = false
+} = Astro.props;
+
+const canonicalUrl = new URL(Astro.url.pathname, siteConfig.url).toString();
+const ogUrl = new URL(ogImage, siteConfig.url).toString();
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: siteConfig.title,
+  url: siteConfig.url,
+  description,
+  author: {
+    "@type": "Person",
+    name: siteConfig.author
+  }
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <link rel="canonical" href={canonicalUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogUrl} />
+    {noIndex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />
+  </head>
+  <body class="min-h-screen bg-bg text-text antialiased">
+    <slot />
+  </body>
+</html>

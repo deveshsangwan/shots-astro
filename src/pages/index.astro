@@ -1,0 +1,89 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import SiteHeader from "@/components/SiteHeader.astro";
+import SiteFooter from "@/components/SiteFooter.astro";
+import GalleryExperience from "@/components/gallery/GalleryExperience.astro";
+import { siteConfig } from "@/config/site";
+import type { PhotoViewModel } from "@/types/photo";
+
+const entries = await getCollection("photos").catch(() => []);
+const sortedEntries = entries.sort(
+  (a, b) => b.data.publishedAt.getTime() - a.data.publishedAt.getTime()
+);
+
+const photos: PhotoViewModel[] = sortedEntries.map((entry) => {
+  const thumb = entry.data.thumbnail ?? entry.data.image;
+  return {
+    id: entry.slug,
+    title: entry.data.title,
+    description: entry.data.description ?? "Untitled frame.",
+    publishedAt: entry.data.publishedAt.toISOString(),
+    year: String(entry.data.publishedAt.getFullYear()),
+    tags: entry.data.tags,
+    location: entry.data.location ?? "",
+    camera: entry.data.camera ?? "",
+    lens: entry.data.lens ?? "",
+    aperture: entry.data.settings?.aperture ?? "",
+    shutter: entry.data.settings?.shutter ?? "",
+    iso: entry.data.settings?.iso ? String(entry.data.settings.iso) : "",
+    focalLength: entry.data.settings?.focalLength ?? "",
+    featured: entry.data.featured,
+    thumbnail: {
+      src: thumb.src,
+      width: thumb.width,
+      height: thumb.height
+    },
+    full: {
+      src: entry.data.image.src,
+      width: entry.data.image.width,
+      height: entry.data.image.height
+    }
+  };
+});
+
+const tags = Array.from(new Set(photos.flatMap((photo) => photo.tags))).sort();
+const cameras = Array.from(
+  new Set(photos.map((photo) => photo.camera).filter(Boolean))
+).sort();
+const years = Array.from(new Set(photos.map((photo) => photo.year))).sort((a, b) =>
+  a > b ? -1 : 1
+);
+
+const featuredPhoto = photos.find((photo) => photo.featured) ?? photos[0];
+---
+
+<BaseLayout
+  title={`${siteConfig.title} | Portfolio`}
+  description={siteConfig.subtitle}
+  ogImage={featuredPhoto?.full.src}
+>
+  <SiteHeader />
+
+  <main>
+    <section class="mx-auto w-full max-w-7xl px-5 pt-12 md:px-8 md:pt-16">
+      <div class="grid gap-8 md:grid-cols-[1.25fr_1fr] md:items-end">
+        <div>
+          <p class="text-xs tracking-[0.24em] text-muted uppercase">Photography Portfolio</p>
+          <h1 class="mt-3 max-w-2xl font-display text-4xl leading-tight text-text md:text-6xl">
+            Cinematic moments. Minimal presentation.
+          </h1>
+          <p class="mt-4 max-w-2xl text-sm leading-7 text-muted md:text-base">
+            A curated collection of visual stories by {siteConfig.author}. Browse by mood, camera, and year to explore how each scene was captured.
+          </p>
+        </div>
+        <div class="rounded-xl border border-white/10 bg-surface/70 p-5">
+          <p class="text-sm text-muted">Total photos</p>
+          <p class="mt-1 font-display text-4xl text-text">{photos.length}</p>
+          <p class="mt-3 text-xs leading-6 text-muted">
+            Use filters and keyboard arrows in lightbox mode for faster navigation.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <GalleryExperience photos={photos} tags={tags} cameras={cameras} years={years} />
+  </main>
+
+  <SiteFooter />
+</BaseLayout>

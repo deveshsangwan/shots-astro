@@ -1,0 +1,82 @@
+<dialog
+  id="photo-lightbox"
+  class="backdrop:bg-black/80 m-0 h-full max-h-none w-full max-w-none bg-transparent p-0 text-text"
+>
+  <div class="relative mx-auto flex h-full max-w-7xl flex-col px-4 py-6 md:px-8">
+    <div class="mb-4 flex items-center justify-between gap-2">
+      <p id="lightbox-position" class="text-xs tracking-[0.2em] text-muted uppercase"></p>
+      <button
+        type="button"
+        id="lightbox-close"
+        class="rounded-full border border-white/20 px-3 py-2 text-sm text-muted transition-colors hover:text-text"
+      >
+        Close
+      </button>
+    </div>
+
+    <div class="grid h-full min-h-0 gap-4 md:grid-cols-[1.8fr_1fr]">
+      <div
+        id="lightbox-media-container"
+        class="relative flex min-h-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black/30"
+      >
+        <img id="lightbox-image" alt="" class="max-h-[76vh] w-auto max-w-full object-contain" />
+
+        <button
+          type="button"
+          id="lightbox-prev"
+          class="absolute left-3 rounded-full border border-white/20 bg-black/40 p-3 text-sm text-muted transition-colors hover:text-text"
+          aria-label="Previous image"
+        >
+          Prev
+        </button>
+        <button
+          type="button"
+          id="lightbox-next"
+          class="absolute right-3 rounded-full border border-white/20 bg-black/40 p-3 text-sm text-muted transition-colors hover:text-text"
+          aria-label="Next image"
+        >
+          Next
+        </button>
+      </div>
+
+      <aside class="rounded-xl border border-white/10 bg-surface/70 p-4">
+        <p id="lightbox-title" class="font-display text-2xl text-text"></p>
+        <p id="lightbox-description" class="mt-2 text-sm leading-6 text-muted"></p>
+        <dl class="mt-5 grid grid-cols-2 gap-3 text-sm">
+          <div>
+            <dt class="text-muted">Date</dt>
+            <dd id="lightbox-date" class="text-text"></dd>
+          </div>
+          <div>
+            <dt class="text-muted">Location</dt>
+            <dd id="lightbox-location" class="text-text"></dd>
+          </div>
+          <div>
+            <dt class="text-muted">Camera</dt>
+            <dd id="lightbox-camera" class="text-text"></dd>
+          </div>
+          <div>
+            <dt class="text-muted">Lens</dt>
+            <dd id="lightbox-lens" class="text-text"></dd>
+          </div>
+          <div>
+            <dt class="text-muted">Aperture</dt>
+            <dd id="lightbox-aperture" class="text-text"></dd>
+          </div>
+          <div>
+            <dt class="text-muted">Shutter</dt>
+            <dd id="lightbox-shutter" class="text-text"></dd>
+          </div>
+          <div>
+            <dt class="text-muted">ISO</dt>
+            <dd id="lightbox-iso" class="text-text"></dd>
+          </div>
+          <div>
+            <dt class="text-muted">Focal Length</dt>
+            <dd id="lightbox-focal-length" class="text-text"></dd>
+          </div>
+        </dl>
+      </aside>
+    </div>
+  </div>
+</dialog>
