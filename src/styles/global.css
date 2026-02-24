@@ -33,6 +33,32 @@ img {
   color: rgb(var(--color-text));
 }
 
+/* Scroll-triggered entrance animations */
+[data-animate] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-animate].is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Masonry grid */
+.masonry-grid {
+  columns: 1;
+  column-gap: 1.25rem;
+}
+@media (min-width: 640px)  { .masonry-grid { columns: 2; } }
+@media (min-width: 1024px) { .masonry-grid { columns: 3; } }
+@media (min-width: 1280px) { .masonry-grid { columns: 4; } }
+
+.masonry-grid > * {
+  break-inside: avoid;
+  margin-bottom: 1.25rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -41,5 +67,9 @@ img {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  [data-animate] {
+    opacity: 1;
+    transform: none;
   }
 }

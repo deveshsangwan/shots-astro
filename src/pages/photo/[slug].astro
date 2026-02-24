@@ -7,13 +7,20 @@ import { siteConfig } from "@/config/site";
 
 export async function getStaticPaths() {
   const photos = await getCollection("photos");
-  return photos.map((photo) => ({
+  const sorted = photos.sort(
+    (a, b) => b.data.publishedAt.getTime() - a.data.publishedAt.getTime()
+  );
+  return sorted.map((photo, index) => ({
     params: { slug: photo.slug },
-    props: { photo }
+    props: {
+      photo,
+      prevPhoto: index > 0 ? sorted[index - 1] : null,
+      nextPhoto: index < sorted.length - 1 ? sorted[index + 1] : null
+    }
   }));
 }
 
-const { photo } = Astro.props;
+const { photo, prevPhoto, nextPhoto } = Astro.props;
 const publishedDate = new Date(photo.data.publishedAt);
 const pageTitle = `${photo.data.title} | ${siteConfig.title}`;
 const description = photo.data.description || siteConfig.description;
@@ -29,67 +36,132 @@ const jsonLd = {
     name: siteConfig.author
   }
 };
+
+const exifFields = [
+  { label: "Date", value: publishedDate.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) },
+  { label: "Location", value: photo.data.location },
+  { label: "Camera", value: photo.data.camera },
+  { label: "Lens", value: photo.data.lens },
+  { label: "Aperture", value: photo.data.settings?.aperture },
+  { label: "Shutter", value: photo.data.settings?.shutter },
+  { label: "ISO", value: photo.data.settings?.iso ? String(photo.data.settings.iso) : null },
+  { label: "Focal Length", value: photo.data.settings?.focalLength },
+];
 ---
 
 <BaseLayout title={pageTitle} description={description} ogImage={`/social/${photo.slug}.svg`}>
   <SiteHeader />
 
-  <main class="mx-auto grid w-full max-w-7xl gap-10 px-5 py-10 md:grid-cols-[1.5fr_1fr] md:px-8 md:py-14">
-    <section class="overflow-hidden rounded-xl border border-white/10 bg-surface/70">
-      <img
-        src={photo.data.image.src}
-        width={photo.data.image.width}
-        height={photo.data.image.height}
-        alt={photo.data.title}
-        class="w-full object-cover"
-      />
-    </section>
-    <aside class="space-y-5 rounded-xl border border-white/10 bg-surface/60 p-5">
-      <p class="text-xs tracking-[0.2em] text-muted uppercase">Photo details</p>
-      <h1 class="font-display text-4xl text-text">{photo.data.title}</h1>
-      {photo.data.description && <p class="text-sm leading-7 text-muted">{photo.data.description}</p>}
-      <dl class="grid grid-cols-2 gap-3 text-sm">
-        <div>
-          <dt class="text-muted">Published</dt>
-          <dd class="text-text">{publishedDate.toLocaleDateString()}</dd>
-        </div>
-        <div>
-          <dt class="text-muted">Location</dt>
-          <dd class="text-text">{photo.data.location || "—"}</dd>
-        </div>
-        <div>
-          <dt class="text-muted">Camera</dt>
-          <dd class="text-text">{photo.data.camera || "—"}</dd>
-        </div>
-        <div>
-          <dt class="text-muted">Lens</dt>
-          <dd class="text-text">{photo.data.lens || "—"}</dd>
-        </div>
-        <div>
-          <dt class="text-muted">Aperture</dt>
-          <dd class="text-text">{photo.data.settings?.aperture || "—"}</dd>
-        </div>
-        <div>
-          <dt class="text-muted">Shutter</dt>
-          <dd class="text-text">{photo.data.settings?.shutter || "—"}</dd>
-        </div>
-      </dl>
-      {photo.data.tags.length > 0 && (
-        <div class="flex flex-wrap gap-2">
-          {photo.data.tags.map((tag: string) => (
-            <span class="rounded-full border border-white/15 px-2.5 py-1 text-xs text-muted">{tag}</span>
-          ))}
-        </div>
-      )}
+  <main class="mx-auto w-full max-w-7xl px-5 py-8 md:px-8 md:py-12">
+    <!-- Hero image with floating back button -->
+    <div class="relative" data-animate>
       <a
         href="/"
-        class="inline-flex rounded-full border border-accent/40 px-4 py-2 text-sm text-accent transition-colors hover:bg-accent/10"
+        class="absolute left-4 top-4 z-10 flex items-center gap-2 rounded-full border border-white/20 bg-black/30 px-4 py-2 text-sm text-white backdrop-blur-md transition-colors hover:bg-black/50"
+        aria-label="Back to gallery"
       >
-        Back to gallery
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        Gallery
       </a>
-    </aside>
+      <div class="overflow-hidden rounded-2xl border border-white/10 shadow-elevated">
+        <img
+          src={photo.data.image.src}
+          width={photo.data.image.width}
+          height={photo.data.image.height}
+          alt={photo.data.title}
+          class="w-full object-cover"
+        />
+      </div>
+    </div>
+
+    <!-- Metadata section -->
+    <div class="mt-8 border-t border-white/10 pt-8" data-animate style="transition-delay: 120ms">
+      <div class="grid gap-8 md:grid-cols-[1.4fr_1fr] md:gap-12">
+        <!-- Left: title, description, tags -->
+        <div class="space-y-5">
+          <h1 class="font-display text-4xl leading-tight text-text md:text-5xl">{photo.data.title}</h1>
+          {photo.data.description && (
+            <p class="max-w-xl text-base leading-8 text-muted">{photo.data.description}</p>
+          )}
+          {photo.data.tags.length > 0 && (
+            <div class="flex flex-wrap gap-2">
+              {photo.data.tags.map((tag: string) => (
+                <a
+                  href={`/?tag=${encodeURIComponent(tag)}`}
+                  class="rounded-full border border-white/15 px-3 py-1.5 text-xs text-muted transition-colors hover:border-accent/40 hover:text-accent"
+                >
+                  {tag}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <!-- Right: EXIF data -->
+        <div class="rounded-xl border border-white/10 bg-surface/60 p-5">
+          <p class="mb-4 text-xs font-semibold tracking-[0.2em] text-muted uppercase">Capture Details</p>
+          <dl class="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
+            {exifFields.map(({ label, value }) => (
+              <div>
+                <dt class="text-muted">{label}</dt>
+                <dd class="mt-0.5 font-medium text-text">{value || "—"}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prev / Next navigation -->
+    {(prevPhoto || nextPhoto) && (
+      <nav class="mt-12 grid gap-4 border-t border-white/10 pt-8 sm:grid-cols-2" data-animate style="transition-delay: 200ms">
+        {prevPhoto ? (
+          <a
+            href={`/photo/${prevPhoto.slug}/`}
+            class="group flex items-center gap-4 rounded-xl border border-white/10 bg-surface/60 p-4 transition-colors hover:border-accent/30"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-muted transition-colors group-hover:text-accent"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+            <div class="min-w-0">
+              <p class="text-xs text-muted">Previous</p>
+              <p class="truncate font-display text-lg text-text">{prevPhoto.data.title}</p>
+            </div>
+          </a>
+        ) : <div />}
+        {nextPhoto ? (
+          <a
+            href={`/photo/${nextPhoto.slug}/`}
+            class="group flex items-center justify-end gap-4 rounded-xl border border-white/10 bg-surface/60 p-4 text-right transition-colors hover:border-accent/30"
+          >
+            <div class="min-w-0">
+              <p class="text-xs text-muted">Next</p>
+              <p class="truncate font-display text-lg text-text">{nextPhoto.data.title}</p>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-muted transition-colors group-hover:text-accent"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+        ) : <div />}
+      </nav>
+    )}
   </main>
 
+  <script is:inline>
+    {
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const elements = document.querySelectorAll("[data-animate]");
+      if (prefersReducedMotion) {
+        elements.forEach((el) => el.classList.add("is-visible"));
+      } else {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("is-visible");
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.05 });
+        elements.forEach((el) => observer.observe(el));
+      }
+    }
+  </script>
   <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />
   <SiteFooter />
 </BaseLayout>
