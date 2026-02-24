@@ -91,8 +91,3 @@ Manual ingestion from URL is available through `.github/workflows/ingest-photo.y
 ## Design System
 
 Design direction and token rules are documented in `docs/design-system.md`.
-
-## Notes
-
-- Legacy Jekyll files remain in the repository for rollback reference while migration stabilizes.
-- Once you are fully satisfied with Astro production behavior, you can archive/remove old Jekyll artifacts in a cleanup pass.
