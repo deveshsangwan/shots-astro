@@ -5,87 +5,45 @@ import type { PhotoViewModel } from "@/types/photo";
 interface Props {
   photos: PhotoViewModel[];
   tags: string[];
-  cameras: string[];
-  years: string[];
 }
 
-const { photos, tags, cameras, years } = Astro.props;
+const { photos, tags } = Astro.props;
 const serializedPhotos = JSON.stringify(photos);
 ---
 
 <section class="mx-auto w-full max-w-7xl px-5 py-8 md:px-8 md:py-12">
-  <div class="mb-8 grid gap-4 rounded-xl border border-white/10 bg-surface/70 p-4 md:grid-cols-4">
-    <label class="space-y-2 text-sm text-muted">
-      <span class="block">Search</span>
-      <input
-        id="filter-query"
-        class="w-full rounded-md border border-white/15 bg-bg/70 px-3 py-2 text-sm text-text outline-none transition-colors focus:border-accent/60"
-        type="search"
-        placeholder="Title, description, or place"
-      />
-    </label>
-    <label class="space-y-2 text-sm text-muted">
-      <span class="block">Tag</span>
-      <select
-        id="filter-tag"
-        class="w-full rounded-md border border-white/15 bg-bg/70 px-3 py-2 text-sm text-text outline-none transition-colors focus:border-accent/60"
+  {tags.length > 0 && (
+    <nav class="mb-8 flex flex-wrap gap-2" aria-label="Filter by tag">
+      <button
+        type="button"
+        class="tag-pill rounded-full border border-accent bg-accent/15 px-4 py-1.5 text-sm text-accent transition-colors"
+        data-tag=""
+        aria-pressed="true"
       >
-        <option value="">All tags</option>
-        {tags.map((tag) => (
-          <option value={tag}>{tag}</option>
-        ))}
-      </select>
-    </label>
-    <label class="space-y-2 text-sm text-muted">
-      <span class="block">Camera</span>
-      <select
-        id="filter-camera"
-        class="w-full rounded-md border border-white/15 bg-bg/70 px-3 py-2 text-sm text-text outline-none transition-colors focus:border-accent/60"
-      >
-        <option value="">All cameras</option>
-        {cameras.map((camera) => (
-          <option value={camera}>{camera}</option>
-        ))}
-      </select>
-    </label>
-    <label class="space-y-2 text-sm text-muted">
-      <span class="block">Year</span>
-      <select
-        id="filter-year"
-        class="w-full rounded-md border border-white/15 bg-bg/70 px-3 py-2 text-sm text-text outline-none transition-colors focus:border-accent/60"
-      >
-        <option value="">All years</option>
-        {years.map((year) => (
-          <option value={year}>{year}</option>
-        ))}
-      </select>
-    </label>
-  </div>
-
-  <div class="mb-6 flex items-center justify-between gap-2">
-    <p id="visible-count" class="text-sm text-muted"></p>
-    <button
-      id="clear-filters"
-      type="button"
-      class="rounded-full border border-white/15 px-4 py-2 text-xs tracking-[0.2em] text-muted uppercase transition-colors hover:border-accent/40 hover:text-accent"
-    >
-      Reset filters
-    </button>
-  </div>
+        All
+      </button>
+      {tags.map((tag) => (
+        <button
+          type="button"
+          class="tag-pill rounded-full border border-white/15 px-4 py-1.5 text-sm text-muted transition-colors hover:border-accent/40 hover:text-accent"
+          data-tag={tag}
+          aria-pressed="false"
+        >
+          {tag}
+        </button>
+      ))}
+    </nav>
+  )}
 
   {
     photos.length > 0 ? (
-      <div id="photo-grid" class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div id="photo-grid" class="masonry-grid">
         {photos.map((photo) => (
           <article
-            class="group overflow-hidden rounded-xl border border-white/10 bg-surface/80 transition-transform duration-medium hover:-translate-y-1 hover:shadow-elevated"
+            class="group relative overflow-hidden rounded-xl border border-white/10 bg-surface/80"
             data-photo-card
+            data-animate
             data-photo-id={photo.id}
-            data-title={photo.title.toLowerCase()}
-            data-description={photo.description.toLowerCase()}
-            data-location={photo.location.toLowerCase()}
-            data-camera={photo.camera}
-            data-year={photo.year}
             data-tags={photo.tags.join("|")}
           >
             <button
@@ -101,32 +59,35 @@ const serializedPhotos = JSON.stringify(photos);
                   height={photo.thumbnail.height}
                   alt={photo.title}
                   loading="lazy"
-                  class="h-72 w-full object-cover transition-transform duration-slow group-hover:scale-[1.03]"
+                  class="w-full object-cover transition-transform duration-slow group-hover:scale-[1.04]"
                 />
                 {photo.featured && (
-                  <span class="absolute left-3 top-3 rounded-full bg-accent px-3 py-1 text-xs font-medium text-black">
+                  <span class="absolute left-3 top-3 z-10 rounded-full bg-accent px-3 py-1 text-xs font-medium text-black">
                     Featured
                   </span>
                 )}
-              </div>
-              <div class="space-y-2 p-4">
-                <p class="font-display text-xl text-text">{photo.title}</p>
-                <p class="line-clamp-2 text-sm leading-6 text-muted">{photo.description}</p>
-                <div class="flex flex-wrap gap-2">
-                  {photo.tags.map((tag) => (
-                    <span class="rounded-full border border-white/15 px-2.5 py-1 text-xs text-muted">{tag}</span>
-                  ))}
+                <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 transition-opacity duration-medium group-hover:opacity-100" />
+                <div class="absolute inset-x-0 bottom-0 translate-y-2 p-4 opacity-0 transition-all duration-medium group-hover:translate-y-0 group-hover:opacity-100">
+                  <p class="font-display text-lg leading-snug text-white">{photo.title}</p>
+                  {photo.tags.length > 0 && (
+                    <div class="mt-2 flex flex-wrap gap-1.5">
+                      {photo.tags.slice(0, 3).map((tag) => (
+                        <span class="rounded-full bg-white/15 px-2 py-0.5 text-[11px] text-white/80 backdrop-blur-sm">{tag}</span>
+                      ))}
+                      {photo.tags.length > 3 && (
+                        <span class="rounded-full bg-white/15 px-2 py-0.5 text-[11px] text-white/80 backdrop-blur-sm">+{photo.tags.length - 3}</span>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <p class="pt-2 text-xs tracking-[0.2em] text-accent/80 uppercase">
-                  Click to open lightbox
-                </p>
               </div>
             </button>
             <a
               href={`/photo/${photo.id}/`}
-              class="block border-t border-white/10 px-4 py-3 text-xs tracking-[0.16em] text-muted uppercase transition-colors hover:text-accent"
+              class="pointer-events-none absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 opacity-0 backdrop-blur-md transition-all duration-medium group-hover:pointer-events-auto group-hover:opacity-100"
+              aria-label={`View details for ${photo.title}`}
             >
-              Open detail page
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
             </a>
           </article>
         ))}
@@ -142,7 +103,7 @@ const serializedPhotos = JSON.stringify(photos);
   }
 
   <p id="empty-filter-state" class="mt-6 hidden rounded-xl border border-dashed border-white/20 bg-surface/40 px-6 py-8 text-center text-muted">
-    No photos match these filters. Try broadening your search.
+    No photos match this tag.
   </p>
 </section>
 
@@ -151,92 +112,72 @@ const serializedPhotos = JSON.stringify(photos);
 <script id="photo-data" type="application/json" is:inline set:html={serializedPhotos}></script>
 <script is:inline>
   // @ts-nocheck
-  const text = (elementId) => document.getElementById(elementId);
-  const input = (elementId) => document.getElementById(elementId);
-  const select = (elementId) => document.getElementById(elementId);
+  const el = (id) => document.getElementById(id);
 
-  const photosDataElement = text("photo-data");
+  const photosDataElement = el("photo-data");
   const photosData = photosDataElement?.textContent ? JSON.parse(photosDataElement.textContent) : [];
   const photosById = new Map(photosData.map((photo) => [String(photo.id), photo]));
 
   const cards = Array.from(document.querySelectorAll("[data-photo-card]"));
-  const countElement = text("visible-count");
-  const emptyFilterState = text("empty-filter-state");
+  const emptyFilterState = el("empty-filter-state");
+  const tagPills = Array.from(document.querySelectorAll(".tag-pill"));
 
-  const queryInput = input("filter-query");
-  const tagSelect = select("filter-tag");
-  const cameraSelect = select("filter-camera");
-  const yearSelect = select("filter-year");
-  const clearButton = document.getElementById("clear-filters");
+  const dialog = el("photo-lightbox");
+  const dialogImage = el("lightbox-image");
+  const dialogTitle = el("lightbox-title");
+  const dialogDescription = el("lightbox-description");
+  const dialogDate = el("lightbox-date");
+  const dialogLocation = el("lightbox-location");
+  const dialogCamera = el("lightbox-camera");
+  const dialogLens = el("lightbox-lens");
+  const dialogAperture = el("lightbox-aperture");
+  const dialogShutter = el("lightbox-shutter");
+  const dialogIso = el("lightbox-iso");
+  const dialogFocalLength = el("lightbox-focal-length");
+  const dialogPosition = el("lightbox-position");
+  const prevButton = el("lightbox-prev");
+  const nextButton = el("lightbox-next");
+  const closeButton = el("lightbox-close");
+  const mediaContainer = el("lightbox-media-container");
 
-  const dialog = document.getElementById("photo-lightbox");
-  const dialogImage = document.getElementById("lightbox-image");
-  const dialogTitle = text("lightbox-title");
-  const dialogDescription = text("lightbox-description");
-  const dialogDate = text("lightbox-date");
-  const dialogLocation = text("lightbox-location");
-  const dialogCamera = text("lightbox-camera");
-  const dialogLens = text("lightbox-lens");
-  const dialogAperture = text("lightbox-aperture");
-  const dialogShutter = text("lightbox-shutter");
-  const dialogIso = text("lightbox-iso");
-  const dialogFocalLength = text("lightbox-focal-length");
-  const dialogPosition = text("lightbox-position");
-  const prevButton = document.getElementById("lightbox-prev");
-  const nextButton = document.getElementById("lightbox-next");
-  const closeButton = document.getElementById("lightbox-close");
-  const mediaContainer = document.getElementById("lightbox-media-container");
-
-  if (!queryInput || !tagSelect || !cameraSelect || !yearSelect || !dialog || !dialogImage) {
+  if (!dialog || !dialogImage) {
     throw new Error("Required gallery elements are missing from the DOM.");
   }
 
   let filteredPhotoIds = [];
   let activeIndex = -1;
+  let activeTag = "";
   let touchStartX = null;
   let touchEndX = null;
 
-  const normalize = (value) => String(value ?? "").toLowerCase().trim();
+  const activePillClasses = "border-accent bg-accent/15 text-accent";
+  const inactivePillClasses = "border-white/15 text-muted";
+
+  const setActiveTag = (tag) => {
+    activeTag = tag;
+    tagPills.forEach((pill) => {
+      const isActive = pill.getAttribute("data-tag") === tag;
+      pill.setAttribute("aria-pressed", String(isActive));
+      pill.className = pill.className
+        .replace(/border-accent|bg-accent\/15|text-accent|border-white\/15|text-muted/g, "")
+        .trim();
+      pill.classList.add(...(isActive ? activePillClasses : inactivePillClasses).split(" "));
+    });
+  };
 
   const updateURL = () => {
     const params = new URLSearchParams();
-    if (queryInput.value.trim()) params.set("q", queryInput.value.trim());
-    if (tagSelect.value) params.set("tag", tagSelect.value);
-    if (cameraSelect.value) params.set("camera", cameraSelect.value);
-    if (yearSelect.value) params.set("year", yearSelect.value);
-
+    if (activeTag) params.set("tag", activeTag);
     const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}`;
     window.history.replaceState({}, "", next);
   };
 
-  const readFromURL = () => {
-    const params = new URLSearchParams(window.location.search);
-    queryInput.value = params.get("q") ?? "";
-    tagSelect.value = params.get("tag") ?? "";
-    cameraSelect.value = params.get("camera") ?? "";
-    yearSelect.value = params.get("year") ?? "";
-  };
-
-  const applyFilters = () => {
-    const query = normalize(queryInput.value);
-    const selectedTag = tagSelect.value;
-    const selectedCamera = cameraSelect.value;
-    const selectedYear = yearSelect.value;
+  const applyFilter = () => {
     filteredPhotoIds = [];
 
     cards.forEach((card) => {
-      const title = card.getAttribute("data-title") ?? "";
-      const description = card.getAttribute("data-description") ?? "";
-      const location = card.getAttribute("data-location") ?? "";
       const tags = (card.getAttribute("data-tags") ?? "").split("|").filter(Boolean);
-      const camera = card.getAttribute("data-camera") ?? "";
-      const year = card.getAttribute("data-year") ?? "";
-
-      const matchQuery = !query || title.includes(query) || description.includes(query) || location.includes(query);
-      const matchTag = !selectedTag || tags.includes(selectedTag);
-      const matchCamera = !selectedCamera || camera === selectedCamera;
-      const matchYear = !selectedYear || year === selectedYear;
-      const isVisible = matchQuery && matchTag && matchCamera && matchYear;
+      const isVisible = !activeTag || tags.includes(activeTag);
 
       card.classList.toggle("hidden", !isVisible);
       if (isVisible) {
@@ -245,12 +186,17 @@ const serializedPhotos = JSON.stringify(photos);
       }
     });
 
-    if (countElement) countElement.textContent = `${filteredPhotoIds.length} of ${photosData.length} photos`;
     if (emptyFilterState) {
       emptyFilterState.classList.toggle("hidden", filteredPhotoIds.length !== 0 || photosData.length === 0);
     }
 
     updateURL();
+  };
+
+  const readFromURL = () => {
+    const params = new URLSearchParams(window.location.search);
+    const tag = params.get("tag") ?? "";
+    setActiveTag(tag);
   };
 
   const fill = (element, value) => {
@@ -308,16 +254,11 @@ const serializedPhotos = JSON.stringify(photos);
     });
   });
 
-  queryInput.addEventListener("input", applyFilters);
-  tagSelect.addEventListener("change", applyFilters);
-  cameraSelect.addEventListener("change", applyFilters);
-  yearSelect.addEventListener("change", applyFilters);
-  clearButton?.addEventListener("click", () => {
-    queryInput.value = "";
-    tagSelect.value = "";
-    cameraSelect.value = "";
-    yearSelect.value = "";
-    applyFilters();
+  tagPills.forEach((pill) => {
+    pill.addEventListener("click", () => {
+      setActiveTag(pill.getAttribute("data-tag") ?? "");
+      applyFilter();
+    });
   });
 
   prevButton?.addEventListener("click", () => stepLightbox(-1));
@@ -350,5 +291,25 @@ const serializedPhotos = JSON.stringify(photos);
   });
 
   readFromURL();
-  applyFilters();
+  applyFilter();
+
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!prefersReducedMotion) {
+    const animElements = document.querySelectorAll("[data-animate]");
+    let visibleIndex = 0;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          el.style.transitionDelay = `${(visibleIndex % 4) * 80}ms`;
+          visibleIndex++;
+          el.classList.add("is-visible");
+          observer.unobserve(el);
+        }
+      });
+    }, { threshold: 0.08 });
+    animElements.forEach((el) => observer.observe(el));
+  } else {
+    document.querySelectorAll("[data-animate]").forEach((el) => el.classList.add("is-visible"));
+  }
 </script>
