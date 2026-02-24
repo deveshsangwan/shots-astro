@@ -1,6 +1,7 @@
 ---
 import "@/styles/global.css";
 import { siteConfig } from "@/config/site";
+import { withBase } from "@/utils/withBase";
 
 interface Props {
   title?: string;
@@ -12,7 +13,7 @@ interface Props {
 const {
   title = siteConfig.title,
   description = siteConfig.description,
-  ogImage = "/social/og-default.svg",
+  ogImage = withBase("social/og-default.svg"),
   noIndex = false
 } = Astro.props;
 
@@ -50,7 +51,7 @@ const jsonLd = {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogUrl} />
     {noIndex && <meta name="robots" content="noindex, nofollow" />}
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href={withBase("favicon.svg")} type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet" />

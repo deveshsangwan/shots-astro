@@ -1,6 +1,7 @@
 ---
 import PhotoLightbox from "@/components/lightbox/PhotoLightbox.astro";
 import type { PhotoViewModel } from "@/types/photo";
+import { withBase } from "@/utils/withBase";
 
 interface Props {
   photos: PhotoViewModel[];
@@ -83,7 +84,7 @@ const serializedPhotos = JSON.stringify(photos);
               </div>
             </button>
             <a
-              href={`/photo/${photo.id}/`}
+              href={withBase(`photo/${photo.id}/`)}
               class="pointer-events-none absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 opacity-0 backdrop-blur-md transition-all duration-medium group-hover:pointer-events-auto group-hover:opacity-100"
               aria-label={`View details for ${photo.title}`}
             >
@@ -96,7 +97,7 @@ const serializedPhotos = JSON.stringify(photos);
       <div class="rounded-xl border border-dashed border-white/20 bg-surface/40 px-6 py-12 text-center">
         <p class="font-display text-2xl text-text">No photos yet</p>
         <p class="mx-auto mt-3 max-w-xl text-sm leading-7 text-muted">
-          Add your first image with <code class="rounded bg-black/40 px-2 py-1 text-accent">npm run add-photo -- --input /path/to/image.jpg --title "My Shot"</code>.
+          Add your first image with <code class="rounded bg-black/40 px-2 py-1 text-accent">bun run add-photo -- --input /path/to/image.jpg --title "My Shot"</code>.
         </p>
       </div>
     )

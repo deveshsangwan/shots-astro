@@ -3,7 +3,7 @@ export const siteConfig = {
   subtitle: "See the world through my eyes!",
   author: "Devesh Sangwan",
   description: "A modern photography portfolio focused on storytelling through light, texture, and moments.",
-  url: "https://shots.deveshsangwan.com",
+  url: "https://deveshsangwan.github.io/shots-astro",
   footer: {
     name: "Hey there, I am Devesh Sangwan",
     bio: "A computer engineering student from New Delhi documenting moments through photography."

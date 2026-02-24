@@ -6,6 +6,7 @@ import SiteFooter from "@/components/SiteFooter.astro";
 import GalleryExperience from "@/components/gallery/GalleryExperience.astro";
 import { siteConfig } from "@/config/site";
 import type { PhotoViewModel } from "@/types/photo";
+import { withBase } from "@/utils/withBase";
 
 const entries = await getCollection("photos").catch(() => []);
 const sortedEntries = entries.sort(
@@ -49,7 +50,7 @@ const featuredPhoto = photos.find((photo) => photo.featured) ?? photos[0];
 <BaseLayout
   title={`${siteConfig.title} | Portfolio`}
   description={siteConfig.subtitle}
-  ogImage={featuredPhoto?.full.src}
+  ogImage={featuredPhoto ? withBase(`social/${featuredPhoto.id}.svg`) : withBase("social/og-default.svg")}
 >
   <SiteHeader />
 

@@ -4,6 +4,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import SiteHeader from "@/components/SiteHeader.astro";
 import SiteFooter from "@/components/SiteFooter.astro";
 import { siteConfig } from "@/config/site";
+import { withBase } from "@/utils/withBase";
 
 const entries = await getCollection("photos").catch(() => []);
 
@@ -99,7 +100,7 @@ const topCamera = cameras.length > 0 ? cameras[0][0] : "—";
             const size = count >= 8 ? "text-base px-5 py-2.5" : count >= 4 ? "text-sm px-4 py-2" : "text-xs px-3 py-1.5";
             return (
               <a
-                href={`/?tag=${encodeURIComponent(tag)}`}
+                href={`${withBase()}?tag=${encodeURIComponent(tag)}`}
                 class={`rounded-full border border-white/15 text-muted transition-colors hover:border-accent/40 hover:text-accent ${size}`}
               >
                 {tag}
@@ -118,7 +119,7 @@ const topCamera = cameras.length > 0 ? cameras[0][0] : "—";
         Open any shot in the lightbox to see the full story behind each frame.
       </p>
       <a
-        href="/"
+        href={withBase()}
         class="mt-6 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-black transition-transform hover:scale-[1.03] active:scale-[0.98]"
       >
         Explore the gallery

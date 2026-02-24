@@ -37,7 +37,7 @@
   "bugs": {
     "url": "https://github.com/deveshsangwan/shots/issues"
   },
-  "homepage": "https://shots.deveshsangwan.com",
+  "homepage": "https://deveshsangwan.github.io/shots-astro/",
   "dependencies": {
     "@astrojs/sitemap": "^3.7.0",
     "@astrojs/tailwind": "^6.0.2",

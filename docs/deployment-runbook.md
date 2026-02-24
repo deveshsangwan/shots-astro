@@ -4,7 +4,7 @@
 
 - Primary branch: `main`
 - Deploy workflow: `.github/workflows/deploy-astro.yml`
-- Host target: GitHub Pages with custom domain `shots.deveshsangwan.com`
+- Host target: GitHub Pages project site `https://deveshsangwan.github.io/shots-astro/`
 
 ## Pre-Deploy Checklist
 
@@ -15,7 +15,7 @@
    - `bun run build`
    - `bun run sync-pagefind`
 3. Verify at least one content entry exists in `src/content/photos`.
-4. Confirm `public/CNAME` contains correct domain.
+4. Confirm `astro.config.mjs` has `site: "https://deveshsangwan.github.io"` and `base: "/shots-astro"`.
 
 ## Cutover Steps
 
