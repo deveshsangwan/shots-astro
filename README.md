@@ -84,8 +84,8 @@ bun run sync-pagefind
 
 - Production deployment is handled by `.github/workflows/deploy-astro.yml`.
 - On push to `main`, Actions builds and deploys `dist/` to GitHub Pages.
-- Current live URL: `https://deveshsangwan.github.io/shots-astro/`.
-- When you later move to a custom domain, add `public/CNAME` back and update `site`/`base` in `astro.config.mjs`.
+- Current live URL: `https://shots.deveshsangwan.com/`.
+- Custom domain is configured via `public/CNAME`.
 
 Manual ingestion from URL is available through `.github/workflows/ingest-photo.yml` (`workflow_dispatch`).
 
