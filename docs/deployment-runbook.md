@@ -38,12 +38,7 @@ If production breaks:
 2. Re-run the deploy workflow (automatic on push).
 3. If needed, redeploy last known good commit from GitHub UI.
 
-Keep a migration snapshot tag for safe fallback, for example:
-
-```bash
-git tag jekyll-snapshot
-git push origin jekyll-snapshot
-```
+Legacy Jekyll rollback is already covered by your separate legacy branch.
 
 ## Workflow References
 

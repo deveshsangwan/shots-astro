@@ -14,16 +14,10 @@
 - Legacy image URLs are preserved via generated copies in `public/images/fulls` and `public/images/thumbs`.
 - New detail pages are available at `/photo/<slug>/`.
 
-## Files retained for rollback
+## Legacy files status
 
-Legacy files are intentionally kept during stabilization so rollback stays simple. After a stable production window, you can archive or remove:
-
-- `_config.yml`
-- `_layouts/`
-- `_includes/`
-- `index.html`
-- `gulpfile.js`
-- legacy `assets/` JS/CSS pipeline files
+Legacy Jekyll runtime files have been removed from `main`.
+Rollback history is preserved in your separate legacy branch.
 
 ## First production validation pass
 

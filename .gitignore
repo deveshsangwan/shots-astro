@@ -31,11 +31,6 @@ crashlytics-build.properties
 .DS_Store
 */**/.DS_Store
 
-### Jekyll template
-_site/
-.sass-cache/
-.jekyll-metadata
-
 ### Node template
 # Logs
 logs
@@ -81,5 +76,3 @@ package-lock.json
 
 # Optional REPL history
 .node_repl_history
-
-/Gemfile.lock
