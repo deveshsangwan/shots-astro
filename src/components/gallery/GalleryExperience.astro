@@ -1,4 +1,5 @@
 ---
+import { Image } from "astro:assets";
 import PhotoLightbox from "@/components/lightbox/PhotoLightbox.astro";
 import type { PhotoViewModel } from "@/types/photo";
 import { withBase } from "@/utils/withBase";
@@ -9,7 +10,9 @@ interface Props {
 }
 
 const { photos, tags } = Astro.props;
-const serializedPhotos = JSON.stringify(photos);
+const serializedPhotos = JSON.stringify(
+  photos.map(({ thumbnailAsset, ...photo }) => photo)
+);
 ---
 
 <section class="mx-auto w-full max-w-7xl px-5 py-8 md:px-8 md:py-12">
@@ -39,7 +42,7 @@ const serializedPhotos = JSON.stringify(photos);
   {
     photos.length > 0 ? (
       <div id="photo-grid" class="masonry-grid">
-        {photos.map((photo) => (
+        {photos.map((photo, index) => (
           <article
             class="group relative overflow-hidden rounded-xl border border-white/10 bg-surface/80"
             data-photo-card
@@ -54,12 +57,15 @@ const serializedPhotos = JSON.stringify(photos);
               aria-label={`Open ${photo.title}`}
             >
               <div class="relative overflow-hidden">
-                <img
-                  src={photo.thumbnail.src}
-                  width={photo.thumbnail.width}
-                  height={photo.thumbnail.height}
+                <Image
+                  src={photo.thumbnailAsset}
                   alt={photo.title}
-                  loading="lazy"
+                  widths={[320, 480, 640, 800]}
+                  sizes="(min-width: 1280px) 23vw, (min-width: 1024px) 31vw, (min-width: 640px) 48vw, 100vw"
+                  format="webp"
+                  loading={index < 4 ? "eager" : "lazy"}
+                  fetchpriority={index < 4 ? "high" : "auto"}
+                  decoding="async"
                   class="w-full object-cover transition-transform duration-slow group-hover:scale-[1.04]"
                 />
                 {photo.featured && (

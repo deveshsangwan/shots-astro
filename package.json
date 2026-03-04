@@ -19,6 +19,7 @@
     "check": "astro check",
     "add-photo": "bun scripts/add-photo.ts",
     "import-legacy": "bun scripts/import-legacy.ts",
+    "regenerate-thumbnails": "bun scripts/regenerate-thumbnails.ts",
     "sync-pagefind": "pagefind --site dist --output-subdir pagefind"
   },
   "repository": {

@@ -231,8 +231,8 @@ const main = async () => {
 
   await processor
     .clone()
-    .resize({ width: 1200, withoutEnlargement: true })
-    .jpeg({ quality: 82, mozjpeg: true })
+    .resize({ width: 800, withoutEnlargement: true })
+    .jpeg({ quality: 78, mozjpeg: true })
     .toFile(thumbAssetPath);
 
   await Promise.all([

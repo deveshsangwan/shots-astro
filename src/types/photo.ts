@@ -1,3 +1,11 @@
+import type { ImageMetadata } from "astro";
+
+interface PhotoImageData {
+  src: string;
+  width: number;
+  height: number;
+}
+
 export interface PhotoViewModel {
   id: string;
   title: string;
@@ -13,14 +21,7 @@ export interface PhotoViewModel {
   iso: string;
   focalLength: string;
   featured: boolean;
-  thumbnail: {
-    src: string;
-    width: number;
-    height: number;
-  };
-  full: {
-    src: string;
-    width: number;
-    height: number;
-  };
+  thumbnail: PhotoImageData;
+  thumbnailAsset: ImageMetadata;
+  full: PhotoImageData;
 }
