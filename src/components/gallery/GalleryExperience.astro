@@ -10,9 +10,6 @@ interface Props {
 }
 
 const { photos, tags } = Astro.props;
-const serializedPhotos = JSON.stringify(
-  photos.map(({ thumbnailAsset, ...photo }) => photo)
-);
 ---
 
 <section class="mx-auto w-full max-w-7xl px-5 py-8 md:px-8 md:py-12">
@@ -60,11 +57,11 @@ const serializedPhotos = JSON.stringify(
                 <Image
                   src={photo.thumbnailAsset}
                   alt={photo.title}
-                  widths={[320, 480, 640, 800]}
-                  sizes="(min-width: 1280px) 23vw, (min-width: 1024px) 31vw, (min-width: 640px) 48vw, 100vw"
+                  widths={[240, 320, 480, 640]}
+                  sizes="(min-width: 1280px) 23vw, (min-width: 1024px) 31vw, (min-width: 640px) 48vw, 95vw"
                   format="webp"
-                  loading={index < 4 ? "eager" : "lazy"}
-                  fetchpriority={index < 4 ? "high" : "auto"}
+                  loading={index === 0 ? "eager" : "lazy"}
+                  fetchpriority={index === 0 ? "high" : "auto"}
                   decoding="async"
                   class="w-full object-cover transition-transform duration-slow group-hover:scale-[1.04]"
                 />
@@ -116,15 +113,12 @@ const serializedPhotos = JSON.stringify(
 
 <PhotoLightbox />
 
-<script id="photo-data" type="application/json" is:inline set:html={serializedPhotos}></script>
-<script is:inline>
+<script is:inline define:vars={{ photoDataUrl: withBase("photo-data.json") }}>
   // @ts-nocheck
   const el = (id) => document.getElementById(id);
 
-  const photosDataElement = el("photo-data");
-  const photosData = photosDataElement?.textContent ? JSON.parse(photosDataElement.textContent) : [];
-  const photosById = new Map(photosData.map((photo) => [String(photo.id), photo]));
-
+  const photosById = new Map();
+  let photosPromise = null;
   const cards = Array.from(document.querySelectorAll("[data-photo-card]"));
   const emptyFilterState = el("empty-filter-state");
   const tagPills = Array.from(document.querySelectorAll(".tag-pill"));
@@ -147,9 +141,7 @@ const serializedPhotos = JSON.stringify(
   const closeButton = el("lightbox-close");
   const mediaContainer = el("lightbox-media-container");
 
-  if (!dialog || !dialogImage) {
-    throw new Error("Required gallery elements are missing from the DOM.");
-  }
+  const lightboxEnabled = Boolean(dialog && dialogImage);
 
   let filteredPhotoIds = [];
   let activeIndex = -1;
@@ -194,7 +186,7 @@ const serializedPhotos = JSON.stringify(
     });
 
     if (emptyFilterState) {
-      emptyFilterState.classList.toggle("hidden", filteredPhotoIds.length !== 0 || photosData.length === 0);
+      emptyFilterState.classList.toggle("hidden", filteredPhotoIds.length !== 0 || cards.length === 0);
     }
 
     updateURL();
@@ -211,13 +203,36 @@ const serializedPhotos = JSON.stringify(
     element.textContent = value || "—";
   };
 
+  const ensurePhotosLoaded = async () => {
+    if (photosById.size > 0) return true;
+    if (!photosPromise) {
+      photosPromise = fetch(photoDataUrl, { credentials: "same-origin" })
+        .then((response) => {
+          if (!response.ok) throw new Error(`Failed to load photo data: ${response.status}`);
+          return response.json();
+        })
+        .then((payload) => {
+          if (!Array.isArray(payload)) return false;
+          payload.forEach((photo) => {
+            if (photo?.id) photosById.set(String(photo.id), photo);
+          });
+          return photosById.size > 0;
+        })
+        .catch((error) => {
+          console.error(error);
+          return false;
+        });
+    }
+    return photosPromise;
+  };
+
   const renderActivePhoto = () => {
     if (activeIndex < 0 || activeIndex >= filteredPhotoIds.length) return;
     const currentId = filteredPhotoIds[activeIndex];
     const currentPhoto = photosById.get(currentId);
     if (!currentPhoto) return;
 
-    dialogImage.setAttribute("src", currentPhoto.full.src);
+    dialogImage.setAttribute("src", currentPhoto.fullSrc);
     dialogImage.setAttribute("alt", currentPhoto.title);
     fill(dialogTitle, currentPhoto.title);
     fill(dialogDescription, currentPhoto.description);
@@ -232,8 +247,10 @@ const serializedPhotos = JSON.stringify(
     fill(dialogPosition, `${activeIndex + 1} / ${filteredPhotoIds.length}`);
   };
 
-  const openLightbox = (photoId) => {
-    if (filteredPhotoIds.length === 0) return;
+  const openLightbox = async (photoId) => {
+    if (!lightboxEnabled || filteredPhotoIds.length === 0) return;
+    const loaded = await ensurePhotosLoaded();
+    if (!loaded) return;
     activeIndex = filteredPhotoIds.indexOf(photoId);
     if (activeIndex < 0) activeIndex = 0;
     renderActivePhoto();
@@ -257,7 +274,7 @@ const serializedPhotos = JSON.stringify(
     button.addEventListener("click", () => {
       const id = button.getAttribute("data-open-lightbox");
       if (!id) return;
-      openLightbox(id);
+      void openLightbox(id);
     });
   });
 
@@ -268,55 +285,65 @@ const serializedPhotos = JSON.stringify(
     });
   });
 
-  prevButton?.addEventListener("click", () => stepLightbox(-1));
-  nextButton?.addEventListener("click", () => stepLightbox(1));
-  closeButton?.addEventListener("click", closeLightbox);
-  dialog.addEventListener("click", (event) => {
-    if (event.target === dialog) closeLightbox();
-  });
-  dialog.addEventListener("close", () => {
-    document.body.style.overflow = "";
-  });
+  if (lightboxEnabled) {
+    prevButton?.addEventListener("click", () => stepLightbox(-1));
+    nextButton?.addEventListener("click", () => stepLightbox(1));
+    closeButton?.addEventListener("click", closeLightbox);
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) closeLightbox();
+    });
+    dialog.addEventListener("close", () => {
+      document.body.style.overflow = "";
+    });
 
-  document.addEventListener("keydown", (event) => {
-    if (!dialog.open) return;
-    if (event.key === "Escape") closeLightbox();
-    if (event.key === "ArrowLeft") stepLightbox(-1);
-    if (event.key === "ArrowRight") stepLightbox(1);
-  });
+    document.addEventListener("keydown", (event) => {
+      if (!dialog.open) return;
+      if (event.key === "Escape") closeLightbox();
+      if (event.key === "ArrowLeft") stepLightbox(-1);
+      if (event.key === "ArrowRight") stepLightbox(1);
+    });
 
-  mediaContainer?.addEventListener("touchstart", (event) => {
-    touchStartX = event.changedTouches[0]?.screenX ?? null;
-  });
-  mediaContainer?.addEventListener("touchend", (event) => {
-    touchEndX = event.changedTouches[0]?.screenX ?? null;
-    if (touchStartX == null || touchEndX == null) return;
-    const delta = touchStartX - touchEndX;
-    if (Math.abs(delta) < 50) return;
-    if (delta > 0) stepLightbox(1);
-    if (delta < 0) stepLightbox(-1);
-  });
+    mediaContainer?.addEventListener("touchstart", (event) => {
+      touchStartX = event.changedTouches[0]?.screenX ?? null;
+    });
+    mediaContainer?.addEventListener("touchend", (event) => {
+      touchEndX = event.changedTouches[0]?.screenX ?? null;
+      if (touchStartX == null || touchEndX == null) return;
+      const delta = touchStartX - touchEndX;
+      if (Math.abs(delta) < 50) return;
+      if (delta > 0) stepLightbox(1);
+      if (delta < 0) stepLightbox(-1);
+    });
+  }
 
   readFromURL();
   applyFilter();
 
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (!prefersReducedMotion) {
-    const animElements = document.querySelectorAll("[data-animate]");
-    let visibleIndex = 0;
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const el = entry.target;
-          el.style.transitionDelay = `${(visibleIndex % 4) * 80}ms`;
-          visibleIndex++;
-          el.classList.add("is-visible");
-          observer.unobserve(el);
-        }
-      });
-    }, { threshold: 0.08 });
-    animElements.forEach((el) => observer.observe(el));
+  const initDeferred = () => {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!prefersReducedMotion) {
+      const animElements = document.querySelectorAll("[data-animate]");
+      let visibleIndex = 0;
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const animatedEl = entry.target;
+            animatedEl.style.transitionDelay = `${(visibleIndex % 4) * 80}ms`;
+            visibleIndex++;
+            animatedEl.classList.add("is-visible");
+            observer.unobserve(animatedEl);
+          }
+        });
+      }, { threshold: 0.08 });
+      animElements.forEach((animatedEl) => observer.observe(animatedEl));
+    } else {
+      document.querySelectorAll("[data-animate]").forEach((animatedEl) => animatedEl.classList.add("is-visible"));
+    }
+  };
+
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(() => initDeferred(), { timeout: 800 });
   } else {
-    document.querySelectorAll("[data-animate]").forEach((el) => el.classList.add("is-visible"));
+    setTimeout(initDeferred, 120);
   }
 </script>
