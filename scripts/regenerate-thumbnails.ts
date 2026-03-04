@@ -23,8 +23,8 @@ const contentDir = path.join(rootDir, "src/content/photos");
 const publicThumbDir = path.join(rootDir, "public/images/thumbs");
 
 const defaultOptions: CLIOptions = {
-  width: 800,
-  quality: 78,
+  width: 720,
+  quality: 72,
   dryRun: false
 };
 
