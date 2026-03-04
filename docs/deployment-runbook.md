@@ -31,6 +31,17 @@
    - `/rss.xml`
 4. Run Lighthouse smoke checks on homepage and a photo detail page.
 
+## Caching Policy for Performance
+
+- Astro fingerprinted assets in `/_astro/` should be served with long-lived immutable caching:
+  - `Cache-Control: public, max-age=31536000, immutable`
+- This repo includes `public/_headers` with cache rules for hosts that support `_headers` (for example Netlify/Cloudflare Pages style routing).
+- GitHub Pages does not reliably honor custom per-path cache headers for all asset types.
+- For best mobile repeat-load and hard-refresh behavior on the custom domain, place the site behind a CDN proxy and enforce:
+  - `/_astro/*` => `public, max-age=31536000, immutable`
+  - `/images/*` and `/pagefind/*` => `public, max-age=31536000, immutable`
+  - `/` and HTML routes => `public, max-age=0, must-revalidate`
+
 ## Rollback Strategy
 
 If production breaks:

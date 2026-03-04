@@ -10,6 +10,9 @@ interface Props {
 }
 
 const { photos, tags } = Astro.props;
+const INITIAL_VISIBLE_COUNT = 12;
+const LOAD_MORE_STEP = 12;
+const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
 ---
 
 <section class="mx-auto w-full max-w-7xl px-5 py-8 md:px-8 md:py-12">
@@ -41,11 +44,15 @@ const { photos, tags } = Astro.props;
       <div id="photo-grid" class="masonry-grid">
         {photos.map((photo, index) => (
           <article
-            class="group relative overflow-hidden rounded-xl border border-white/10 bg-surface/80"
+            class:list={[
+              "group relative overflow-hidden rounded-xl border border-white/10 bg-surface/80",
+              index >= initialVisibleCount && "hidden"
+            ]}
             data-photo-card
             data-animate
             data-photo-id={photo.id}
             data-tags={photo.tags.join("|")}
+            data-photo-index={index}
           >
             <button
               class="w-full cursor-pointer text-left"
@@ -57,9 +64,10 @@ const { photos, tags } = Astro.props;
                 <Image
                   src={photo.thumbnailAsset}
                   alt={photo.title}
-                  widths={[240, 320, 480, 640]}
-                  sizes="(min-width: 1280px) 23vw, (min-width: 1024px) 31vw, (min-width: 640px) 48vw, 95vw"
+                  widths={[200, 280, 360, 480]}
+                  sizes="(min-width: 1280px) 23vw, (min-width: 1024px) 31vw, (min-width: 640px) 46vw, 92vw"
                   format="webp"
+                  quality={index === 0 ? 64 : 60}
                   loading={index === 0 ? "eager" : "lazy"}
                   fetchpriority={index === 0 ? "high" : "auto"}
                   decoding="async"
@@ -96,6 +104,15 @@ const { photos, tags } = Astro.props;
           </article>
         ))}
       </div>
+      <div class="mt-2 flex justify-center">
+        <button
+          id="load-more-photos"
+          type="button"
+          class="hidden rounded-full border border-white/20 px-4 py-2 text-sm text-muted transition-colors hover:border-accent/40 hover:text-accent"
+        >
+          Load more photos
+        </button>
+      </div>
     ) : (
       <div class="rounded-xl border border-dashed border-white/20 bg-surface/40 px-6 py-12 text-center">
         <p class="font-display text-2xl text-text">No photos yet</p>
@@ -113,7 +130,7 @@ const { photos, tags } = Astro.props;
 
 <PhotoLightbox />
 
-<script is:inline define:vars={{ photoDataUrl: withBase("photo-data.json") }}>
+<script is:inline define:vars={{ photoDataUrl: withBase("photo-data.json"), initialVisibleCount, loadMoreStep: LOAD_MORE_STEP }}>
   // @ts-nocheck
   const el = (id) => document.getElementById(id);
 
@@ -122,6 +139,7 @@ const { photos, tags } = Astro.props;
   const cards = Array.from(document.querySelectorAll("[data-photo-card]"));
   const emptyFilterState = el("empty-filter-state");
   const tagPills = Array.from(document.querySelectorAll(".tag-pill"));
+  const loadMoreButton = el("load-more-photos");
 
   const dialog = el("photo-lightbox");
   const dialogImage = el("lightbox-image");
@@ -148,6 +166,7 @@ const { photos, tags } = Astro.props;
   let activeTag = "";
   let touchStartX = null;
   let touchEndX = null;
+  let visibleLimit = initialVisibleCount;
 
   const activePillClasses = "border-accent bg-accent/15 text-accent";
   const inactivePillClasses = "border-white/15 text-muted";
@@ -173,20 +192,37 @@ const { photos, tags } = Astro.props;
 
   const applyFilter = () => {
     filteredPhotoIds = [];
+    let totalMatchCount = 0;
+    let visibleMatchCount = 0;
 
     cards.forEach((card) => {
       const tags = (card.getAttribute("data-tags") ?? "").split("|").filter(Boolean);
-      const isVisible = !activeTag || tags.includes(activeTag);
+      const isMatch = !activeTag || tags.includes(activeTag);
 
-      card.classList.toggle("hidden", !isVisible);
-      if (isVisible) {
+      if (isMatch) {
+        totalMatchCount += 1;
+        const isVisible = visibleMatchCount < visibleLimit;
+        card.classList.toggle("hidden", !isVisible);
         const id = card.getAttribute("data-photo-id");
         if (id) filteredPhotoIds.push(id);
+        visibleMatchCount += 1;
+      } else {
+        card.classList.add("hidden");
       }
     });
 
     if (emptyFilterState) {
       emptyFilterState.classList.toggle("hidden", filteredPhotoIds.length !== 0 || cards.length === 0);
+    }
+    if (loadMoreButton) {
+      const hasMore = totalMatchCount > visibleLimit;
+      loadMoreButton.classList.toggle("hidden", !hasMore);
+      const remaining = Math.max(totalMatchCount - visibleLimit, 0);
+      loadMoreButton.textContent = remaining > loadMoreStep
+        ? `Load ${loadMoreStep} more (${remaining} left)`
+        : remaining > 0
+          ? `Load remaining ${remaining}`
+          : "Load more photos";
     }
 
     updateURL();
@@ -281,8 +317,14 @@ const { photos, tags } = Astro.props;
   tagPills.forEach((pill) => {
     pill.addEventListener("click", () => {
       setActiveTag(pill.getAttribute("data-tag") ?? "");
+      visibleLimit = initialVisibleCount;
       applyFilter();
     });
+  });
+
+  loadMoreButton?.addEventListener("click", () => {
+    visibleLimit += loadMoreStep;
+    applyFilter();
   });
 
   if (lightboxEnabled) {
@@ -345,5 +387,16 @@ const { photos, tags } = Astro.props;
     window.requestIdleCallback(() => initDeferred(), { timeout: 800 });
   } else {
     setTimeout(initDeferred, 120);
+  }
+
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(
+      () => {
+        if (activeTag) return;
+        visibleLimit += loadMoreStep;
+        applyFilter();
+      },
+      { timeout: 2500 }
+    );
   }
 </script>

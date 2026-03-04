@@ -1,0 +1,14 @@
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/images/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/pagefind/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/photo-data.json
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
+
+/ 
+  Cache-Control: public, max-age=0, must-revalidate
