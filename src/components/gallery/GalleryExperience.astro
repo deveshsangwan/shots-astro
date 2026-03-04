@@ -104,15 +104,7 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
           </article>
         ))}
       </div>
-      <div class="mt-2 flex justify-center">
-        <button
-          id="load-more-photos"
-          type="button"
-          class="hidden rounded-full border border-white/20 px-4 py-2 text-sm text-muted transition-colors hover:border-accent/40 hover:text-accent"
-        >
-          Load more photos
-        </button>
-      </div>
+      <div id="gallery-scroll-sentinel" class="h-px w-full" aria-hidden="true"></div>
     ) : (
       <div class="rounded-xl border border-dashed border-white/20 bg-surface/40 px-6 py-12 text-center">
         <p class="font-display text-2xl text-text">No photos yet</p>
@@ -139,7 +131,7 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
   const cards = Array.from(document.querySelectorAll("[data-photo-card]"));
   const emptyFilterState = el("empty-filter-state");
   const tagPills = Array.from(document.querySelectorAll(".tag-pill"));
-  const loadMoreButton = el("load-more-photos");
+  const scrollSentinel = el("gallery-scroll-sentinel");
 
   const dialog = el("photo-lightbox");
   const dialogImage = el("lightbox-image");
@@ -167,6 +159,9 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
   let touchStartX = null;
   let touchEndX = null;
   let visibleLimit = initialVisibleCount;
+  let lastTotalMatchCount = 0;
+  let isLoadingMore = false;
+  let scrollObserver = null;
 
   const activePillClasses = "border-accent bg-accent/15 text-accent";
   const inactivePillClasses = "border-white/15 text-muted";
@@ -214,18 +209,29 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
     if (emptyFilterState) {
       emptyFilterState.classList.toggle("hidden", filteredPhotoIds.length !== 0 || cards.length === 0);
     }
-    if (loadMoreButton) {
-      const hasMore = totalMatchCount > visibleLimit;
-      loadMoreButton.classList.toggle("hidden", !hasMore);
-      const remaining = Math.max(totalMatchCount - visibleLimit, 0);
-      loadMoreButton.textContent = remaining > loadMoreStep
-        ? `Load ${loadMoreStep} more (${remaining} left)`
-        : remaining > 0
-          ? `Load remaining ${remaining}`
-          : "Load more photos";
-    }
+    lastTotalMatchCount = totalMatchCount;
 
     updateURL();
+    updateScrollObserver();
+  };
+
+  const canLoadMore = () => lastTotalMatchCount > visibleLimit;
+
+  const loadNextChunk = () => {
+    if (isLoadingMore || !canLoadMore()) return;
+    isLoadingMore = true;
+    visibleLimit += loadMoreStep;
+    applyFilter();
+    isLoadingMore = false;
+  };
+
+  const updateScrollObserver = () => {
+    if (!scrollObserver || !scrollSentinel) return;
+    if (canLoadMore()) {
+      scrollObserver.observe(scrollSentinel);
+    } else {
+      scrollObserver.unobserve(scrollSentinel);
+    }
   };
 
   const readFromURL = () => {
@@ -318,14 +324,24 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
     pill.addEventListener("click", () => {
       setActiveTag(pill.getAttribute("data-tag") ?? "");
       visibleLimit = initialVisibleCount;
+      isLoadingMore = false;
       applyFilter();
     });
   });
 
-  loadMoreButton?.addEventListener("click", () => {
-    visibleLimit += loadMoreStep;
-    applyFilter();
-  });
+  if ("IntersectionObserver" in window && scrollSentinel) {
+    scrollObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) loadNextChunk();
+        });
+      },
+      {
+        rootMargin: "400px 0px 400px 0px",
+        threshold: 0
+      }
+    );
+  }
 
   if (lightboxEnabled) {
     prevButton?.addEventListener("click", () => stepLightbox(-1));
@@ -387,16 +403,5 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
     window.requestIdleCallback(() => initDeferred(), { timeout: 800 });
   } else {
     setTimeout(initDeferred, 120);
-  }
-
-  if ("requestIdleCallback" in window) {
-    window.requestIdleCallback(
-      () => {
-        if (activeTag) return;
-        visibleLimit += loadMoreStep;
-        applyFilter();
-      },
-      { timeout: 2500 }
-    );
   }
 </script>
