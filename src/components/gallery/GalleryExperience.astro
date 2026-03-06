@@ -55,7 +55,7 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
             data-photo-index={index}
           >
             <button
-              class="w-full cursor-pointer text-left"
+              class="block w-full cursor-pointer text-left leading-none"
               type="button"
               data-open-lightbox={photo.id}
               aria-label={`Open ${photo.title}`}
@@ -71,7 +71,7 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
                   loading={index === 0 ? "eager" : "lazy"}
                   fetchpriority={index === 0 ? "high" : "auto"}
                   decoding="async"
-                  class="w-full object-cover transition-transform duration-slow group-hover:scale-[1.04]"
+                  class="block w-full align-top object-cover transition-transform duration-slow group-hover:scale-[1.04]"
                 />
                 {photo.featured && (
                   <span class="absolute left-3 top-3 z-10 rounded-full bg-accent px-3 py-1 text-xs font-medium text-black">
