@@ -53,6 +53,7 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
             data-photo-id={photo.id}
             data-tags={photo.tags.join("|")}
             data-photo-index={index}
+            data-photo-aspect={photo.thumbnail.width / photo.thumbnail.height}
           >
             <button
               class="block w-full cursor-pointer text-left leading-none"
@@ -128,6 +129,7 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
 
   const photosById = new Map();
   let photosPromise = null;
+  const grid = el("photo-grid");
   const cards = Array.from(document.querySelectorAll("[data-photo-card]"));
   const emptyFilterState = el("empty-filter-state");
   const tagPills = Array.from(document.querySelectorAll(".tag-pill"));
@@ -162,6 +164,7 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
   let lastTotalMatchCount = 0;
   let isLoadingMore = false;
   let scrollObserver = null;
+  let currentColumnCount = 0;
 
   const activePillClasses = "border-accent bg-accent/15 text-accent";
   const inactivePillClasses = "border-white/15 text-muted";
@@ -185,10 +188,47 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
     window.history.replaceState({}, "", next);
   };
 
+  const getColumnCount = () => {
+    if (window.matchMedia("(min-width: 1280px)").matches) return 4;
+    if (window.matchMedia("(min-width: 1024px)").matches) return 3;
+    if (window.matchMedia("(min-width: 640px)").matches) return 2;
+    return 1;
+  };
+
+  const buildColumns = (visibleCards, hiddenCards) => {
+    if (!grid) return;
+
+    const columnCount = getColumnCount();
+    currentColumnCount = columnCount;
+    grid.style.setProperty("--masonry-column-count", String(columnCount));
+    grid.textContent = "";
+
+    const columns = Array.from({ length: columnCount }, () => {
+      const column = document.createElement("div");
+      column.className = "masonry-column";
+      grid.appendChild(column);
+      return column;
+    });
+    const columnHeights = Array(columnCount).fill(0);
+
+    visibleCards.forEach((card) => {
+      const targetIndex = columnHeights.indexOf(Math.min(...columnHeights));
+      const aspect = Number(card.getAttribute("data-photo-aspect")) || 1;
+      columns[targetIndex].appendChild(card);
+      columnHeights[targetIndex] += 1 / aspect;
+    });
+
+    hiddenCards.forEach((card) => {
+      grid.appendChild(card);
+    });
+  };
+
   const applyFilter = () => {
     filteredPhotoIds = [];
     let totalMatchCount = 0;
     let visibleMatchCount = 0;
+    const visibleCards = [];
+    const hiddenCards = [];
 
     cards.forEach((card) => {
       const tags = (card.getAttribute("data-tags") ?? "").split("|").filter(Boolean);
@@ -200,14 +240,22 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
         card.classList.toggle("hidden", !isVisible);
         const id = card.getAttribute("data-photo-id");
         if (id) filteredPhotoIds.push(id);
+        if (isVisible) {
+          visibleCards.push(card);
+        } else {
+          hiddenCards.push(card);
+        }
         visibleMatchCount += 1;
       } else {
         card.classList.add("hidden");
+        hiddenCards.push(card);
       }
     });
 
+    buildColumns(visibleCards, hiddenCards);
+
     if (emptyFilterState) {
-      emptyFilterState.classList.toggle("hidden", filteredPhotoIds.length !== 0 || cards.length === 0);
+      emptyFilterState.classList.toggle("hidden", totalMatchCount !== 0 || cards.length === 0);
     }
     lastTotalMatchCount = totalMatchCount;
 
@@ -342,6 +390,12 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
       }
     );
   }
+
+  window.addEventListener("resize", () => {
+    const nextColumnCount = getColumnCount();
+    if (nextColumnCount === currentColumnCount) return;
+    applyFilter();
+  });
 
   if (lightboxEnabled) {
     prevButton?.addEventListener("click", () => stepLightbox(-1));
