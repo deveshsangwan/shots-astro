@@ -16,28 +16,31 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
 ---
 
 <section class="mx-auto w-full max-w-7xl px-5 py-8 md:px-8 md:py-12">
-  {tags.length > 0 && (
-    <nav class="mb-8 flex flex-wrap gap-2" aria-label="Filter by tag">
-      <button
-        type="button"
-        class="tag-pill rounded-full border border-accent bg-accent/15 px-4 py-1.5 text-sm text-accent transition-colors"
-        data-tag=""
-        aria-pressed="true"
-      >
-        All
-      </button>
-      {tags.map((tag) => (
+  <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <p class="text-sm text-muted">{photos.length} {photos.length === 1 ? "photo" : "photos"}</p>
+    {tags.length > 0 && (
+      <nav class="flex flex-wrap gap-2" aria-label="Filter by tag">
         <button
           type="button"
-          class="tag-pill rounded-full border border-white/15 px-4 py-1.5 text-sm text-muted transition-colors hover:border-accent/40 hover:text-accent"
-          data-tag={tag}
-          aria-pressed="false"
+          class="tag-pill rounded-full border border-accent bg-accent/15 px-4 py-1.5 text-sm text-accent transition-colors"
+          data-tag=""
+          aria-pressed="true"
         >
-          {tag}
+          All
         </button>
-      ))}
-    </nav>
-  )}
+        {tags.map((tag) => (
+          <button
+            type="button"
+            class="tag-pill rounded-full border border-white/15 px-4 py-1.5 text-sm text-muted transition-colors hover:border-accent/40 hover:text-accent focus-visible:border-accent/40 focus-visible:text-accent"
+            data-tag={tag}
+            aria-pressed="false"
+          >
+            {tag}
+          </button>
+        ))}
+      </nav>
+    )}
+  </div>
 
   {
     photos.length > 0 ? (
@@ -45,7 +48,7 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
         {photos.map((photo, index) => (
           <article
             class:list={[
-              "group relative overflow-hidden rounded-xl border border-white/10 bg-surface/80",
+              "group relative overflow-hidden rounded-xl border border-white/10 bg-surface/80 transition-colors focus-within:border-accent/40",
               index >= initialVisibleCount && "hidden"
             ]}
             data-photo-card
@@ -56,7 +59,7 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
             data-photo-aspect={photo.thumbnail.width / photo.thumbnail.height}
           >
             <button
-              class="block w-full cursor-pointer text-left leading-none"
+              class="block w-full cursor-pointer text-left leading-none focus:outline-none"
               type="button"
               data-open-lightbox={photo.id}
               aria-label={`Open ${photo.title}`}
@@ -72,18 +75,25 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
                   loading={index === 0 ? "eager" : "lazy"}
                   fetchpriority={index === 0 ? "high" : "auto"}
                   decoding="async"
-                  class="block w-full align-top object-cover transition-transform duration-slow group-hover:scale-[1.04]"
+                  class="block w-full align-top object-cover transition-transform duration-slow group-hover:scale-[1.04] group-focus-within:scale-[1.04]"
                 />
                 {photo.featured && (
                   <span class="absolute left-3 top-3 z-10 rounded-full bg-accent px-3 py-1 text-xs font-medium text-black">
                     Featured
                   </span>
                 )}
-                <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 transition-opacity duration-medium group-hover:opacity-100" />
-                <div class="absolute inset-x-0 bottom-0 translate-y-2 p-4 opacity-0 transition-all duration-medium group-hover:translate-y-0 group-hover:opacity-100">
-                  <p class="font-display text-lg leading-snug text-white">{photo.title}</p>
+                <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-85 transition-opacity duration-medium group-hover:opacity-100 group-focus-within:opacity-100" />
+                <div class="absolute inset-x-0 bottom-0 p-4">
+                  <p class="text-[13px] font-semibold leading-snug tracking-[0.08em] text-white/95 uppercase drop-shadow md:text-sm">
+                    {photo.location || photo.title}
+                  </p>
+                  {photo.location && (
+                    <p class="mt-1 line-clamp-1 text-xs font-medium leading-snug text-white/70 drop-shadow">
+                      {photo.title}
+                    </p>
+                  )}
                   {photo.tags.length > 0 && (
-                    <div class="mt-2 flex flex-wrap gap-1.5">
+                    <div class="mt-2 flex max-h-0 flex-wrap gap-1.5 overflow-hidden opacity-0 transition-all duration-medium group-hover:max-h-12 group-hover:opacity-100 group-focus-within:max-h-12 group-focus-within:opacity-100">
                       {photo.tags.slice(0, 3).map((tag) => (
                         <span class="rounded-full bg-white/15 px-2 py-0.5 text-[11px] text-white/80 backdrop-blur-sm">{tag}</span>
                       ))}
@@ -97,10 +107,10 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
             </button>
             <a
               href={withBase(`photo/${photo.id}/`)}
-              class="pointer-events-none absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 opacity-0 backdrop-blur-md transition-all duration-medium group-hover:pointer-events-auto group-hover:opacity-100"
+              class="pointer-events-none absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/35 opacity-0 backdrop-blur-md transition-all duration-medium hover:bg-accent hover:text-black focus:pointer-events-auto focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
               aria-label={`View details for ${photo.title}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
             </a>
           </article>
         ))}
@@ -288,9 +298,15 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
     setActiveTag(tag);
   };
 
-  const fill = (element, value) => {
+  const hasValue = (value) => Boolean(value && String(value).trim() && String(value).trim() !== "—");
+
+  const fill = (element, value, hideEmpty = false) => {
     if (!element) return;
-    element.textContent = value || "—";
+    const isVisible = hasValue(value);
+    element.textContent = isVisible ? value : "";
+    if (hideEmpty) {
+      element.closest("[data-lightbox-meta]")?.classList.toggle("hidden", !isVisible);
+    }
   };
 
   const ensurePhotosLoaded = async () => {
@@ -326,14 +342,15 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
     dialogImage.setAttribute("alt", currentPhoto.title);
     fill(dialogTitle, currentPhoto.title);
     fill(dialogDescription, currentPhoto.description);
+    dialogDescription?.classList.toggle("hidden", !hasValue(currentPhoto.description));
     fill(dialogDate, new Date(currentPhoto.publishedAt).toLocaleDateString());
-    fill(dialogLocation, currentPhoto.location);
-    fill(dialogCamera, currentPhoto.camera);
-    fill(dialogLens, currentPhoto.lens);
-    fill(dialogAperture, currentPhoto.aperture);
-    fill(dialogShutter, currentPhoto.shutter);
-    fill(dialogIso, currentPhoto.iso);
-    fill(dialogFocalLength, currentPhoto.focalLength);
+    fill(dialogLocation, currentPhoto.location, true);
+    fill(dialogCamera, currentPhoto.camera, true);
+    fill(dialogLens, currentPhoto.lens, true);
+    fill(dialogAperture, currentPhoto.aperture, true);
+    fill(dialogShutter, currentPhoto.shutter, true);
+    fill(dialogIso, currentPhoto.iso, true);
+    fill(dialogFocalLength, currentPhoto.focalLength, true);
     fill(dialogPosition, `${activeIndex + 1} / ${filteredPhotoIds.length}`);
   };
 

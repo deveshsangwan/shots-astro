@@ -6,6 +6,7 @@ import SiteFooter from "@/components/SiteFooter.astro";
 import GalleryExperience from "@/components/gallery/GalleryExperience.astro";
 import { siteConfig } from "@/config/site";
 import type { PhotoViewModel } from "@/types/photo";
+import { getPhotoDisplayTitle } from "@/utils/photoDisplay";
 import { withBase } from "@/utils/withBase";
 
 const entries = await getCollection("photos").catch(() => []);
@@ -13,11 +14,11 @@ const sortedEntries = entries.sort(
   (a, b) => b.data.publishedAt.getTime() - a.data.publishedAt.getTime()
 );
 
-const photos: PhotoViewModel[] = sortedEntries.map((entry) => {
+const photos: PhotoViewModel[] = sortedEntries.map((entry, index) => {
   const thumb = entry.data.thumbnail ?? entry.data.image;
   return {
     id: entry.slug,
-    title: entry.data.title,
+    title: getPhotoDisplayTitle(entry.data.title, index),
     description: entry.data.description ?? "Untitled frame.",
     publishedAt: entry.data.publishedAt.toISOString(),
     year: String(entry.data.publishedAt.getFullYear()),
@@ -57,13 +58,41 @@ const featuredPhoto = photos.find((photo) => photo.featured) ?? photos[0];
 
   <main>
     <section class="mx-auto w-full max-w-7xl px-5 pt-12 md:px-8 md:pt-16">
-      <p data-animate class="text-xs tracking-[0.24em] text-muted uppercase">Photography Portfolio</p>
-      <h1 data-animate class="mt-3 max-w-2xl font-display text-4xl leading-tight text-text md:text-6xl" style="transition-delay: 80ms">
-        Cinematic moments. Minimal presentation.
-      </h1>
-      <p data-animate class="mt-4 max-w-xl text-sm leading-7 text-muted md:text-base" style="transition-delay: 160ms">
-        A curated collection of visual stories by {siteConfig.author}.
-      </p>
+      <div class="grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.64fr)]">
+        <div>
+          <p data-animate class="text-xs tracking-[0.24em] text-muted uppercase">Photography Portfolio</p>
+          <h1 data-animate class="mt-3 max-w-2xl font-display text-4xl leading-tight text-text md:text-6xl" style="transition-delay: 80ms">
+            Cinematic moments. Minimal presentation.
+          </h1>
+          <p data-animate class="mt-4 max-w-xl text-sm leading-7 text-muted md:text-base" style="transition-delay: 160ms">
+            A curated collection of visual stories by {siteConfig.author}.
+          </p>
+        </div>
+        {featuredPhoto && (
+          <a
+            data-animate
+            href={withBase(`photo/${featuredPhoto.id}/`)}
+            class="group relative hidden overflow-hidden rounded-xl border border-white/10 bg-surface/70 lg:block"
+            style="transition-delay: 220ms"
+            aria-label={`View featured photo ${featuredPhoto.title}`}
+          >
+            <img
+              src={featuredPhoto.thumbnail.src}
+              width={featuredPhoto.thumbnail.width}
+              height={featuredPhoto.thumbnail.height}
+              alt={featuredPhoto.title}
+              class="aspect-[5/3] w-full bg-black/30 object-contain opacity-85 transition duration-slow group-hover:scale-[1.02] group-hover:opacity-100"
+              loading="eager"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent"></div>
+            <div class="absolute inset-x-0 bottom-0 p-4">
+              <p class="text-xs tracking-[0.18em] text-white/65 uppercase">Featured Frame</p>
+              <p class="mt-1 text-sm font-semibold tracking-[0.08em] text-white/95 uppercase">{featuredPhoto.location || featuredPhoto.title}</p>
+              {featuredPhoto.location && <p class="mt-1 text-xs font-medium text-white/70">{featuredPhoto.title}</p>}
+            </div>
+          </a>
+        )}
+      </div>
     </section>
 
     <script is:inline>

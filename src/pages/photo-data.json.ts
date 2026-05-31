@@ -1,4 +1,5 @@
 import { getCollection } from "astro:content";
+import { getPhotoDisplayTitle } from "@/utils/photoDisplay";
 
 export async function GET() {
   const entries = await getCollection("photos").catch(() => []);
@@ -6,10 +7,10 @@ export async function GET() {
     (a, b) => b.data.publishedAt.getTime() - a.data.publishedAt.getTime()
   );
 
-  const payload = sorted.map((entry) => ({
+  const payload = sorted.map((entry, index) => ({
     id: entry.slug,
-    title: entry.data.title,
-    description: entry.data.description ?? "Untitled frame.",
+    title: getPhotoDisplayTitle(entry.data.title, index),
+    description: entry.data.description ?? "",
     publishedAt: entry.data.publishedAt.toISOString(),
     location: entry.data.location ?? "",
     camera: entry.data.camera ?? "",

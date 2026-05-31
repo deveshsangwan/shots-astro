@@ -11,8 +11,8 @@ export const siteConfig = {
   social: {
     github: "https://github.com/deveshsangwan",
     twitter: "https://twitter.com/sangwan2001",
-    instagram: "https://www.instagram.com/devesh.sangwan/",
-    linkedin: "https://www.linkedin.com/in/devesh-sangwan-4a6646165/"
+    instagram: "https://www.instagram.com/sangwan.devesh/",
+    linkedin: "https://www.linkedin.com/in/deveshsangwan/"
   }
 } as const;
 

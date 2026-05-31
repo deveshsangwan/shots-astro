@@ -4,6 +4,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import SiteHeader from "@/components/SiteHeader.astro";
 import SiteFooter from "@/components/SiteFooter.astro";
 import { siteConfig } from "@/config/site";
+import { getPhotoDisplayTitle, hasDisplayValue } from "@/utils/photoDisplay";
 import { withBase } from "@/utils/withBase";
 
 export async function getStaticPaths() {
@@ -15,20 +16,23 @@ export async function getStaticPaths() {
     params: { slug: photo.slug },
     props: {
       photo,
+      displayTitle: getPhotoDisplayTitle(photo.data.title, index),
       prevPhoto: index > 0 ? sorted[index - 1] : null,
-      nextPhoto: index < sorted.length - 1 ? sorted[index + 1] : null
+      prevTitle: index > 0 ? getPhotoDisplayTitle(sorted[index - 1].data.title, index - 1) : null,
+      nextPhoto: index < sorted.length - 1 ? sorted[index + 1] : null,
+      nextTitle: index < sorted.length - 1 ? getPhotoDisplayTitle(sorted[index + 1].data.title, index + 1) : null
     }
   }));
 }
 
-const { photo, prevPhoto, nextPhoto } = Astro.props;
+const { photo, displayTitle, prevPhoto, prevTitle, nextPhoto, nextTitle } = Astro.props;
 const publishedDate = new Date(photo.data.publishedAt);
-const pageTitle = `${photo.data.title} | ${siteConfig.title}`;
+const pageTitle = `${displayTitle} | ${siteConfig.title}`;
 const description = photo.data.description || siteConfig.description;
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "ImageObject",
-  name: photo.data.title,
+  name: displayTitle,
   description,
   contentUrl: new URL(photo.data.image.src, siteConfig.url).toString(),
   datePublished: publishedDate.toISOString(),
@@ -47,7 +51,7 @@ const exifFields = [
   { label: "Shutter", value: photo.data.settings?.shutter },
   { label: "ISO", value: photo.data.settings?.iso ? String(photo.data.settings.iso) : null },
   { label: "Focal Length", value: photo.data.settings?.focalLength },
-];
+].filter(({ value }) => hasDisplayValue(value));
 ---
 
 <BaseLayout title={pageTitle} description={description} ogImage={withBase(`social/${photo.slug}.svg`)}>
@@ -69,7 +73,7 @@ const exifFields = [
           src={photo.data.image.src}
           width={photo.data.image.width}
           height={photo.data.image.height}
-          alt={photo.data.title}
+          alt={displayTitle}
           class="w-full object-cover"
         />
       </div>
@@ -80,7 +84,7 @@ const exifFields = [
       <div class="grid gap-8 md:grid-cols-[1.4fr_1fr] md:gap-12">
         <!-- Left: title, description, tags -->
         <div class="space-y-5">
-          <h1 class="font-display text-4xl leading-tight text-text md:text-5xl">{photo.data.title}</h1>
+          <h1 class="font-display text-4xl leading-tight text-text md:text-5xl">{displayTitle}</h1>
           {photo.data.description && (
             <p class="max-w-xl text-base leading-8 text-muted">{photo.data.description}</p>
           )}
@@ -105,7 +109,7 @@ const exifFields = [
             {exifFields.map(({ label, value }) => (
               <div>
                 <dt class="text-muted">{label}</dt>
-                <dd class="mt-0.5 font-medium text-text">{value || "—"}</dd>
+                <dd class="mt-0.5 font-medium text-text">{value}</dd>
               </div>
             ))}
           </dl>
@@ -124,7 +128,7 @@ const exifFields = [
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-muted transition-colors group-hover:text-accent"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
             <div class="min-w-0">
               <p class="text-xs text-muted">Previous</p>
-              <p class="truncate font-display text-lg text-text">{prevPhoto.data.title}</p>
+              <p class="truncate font-display text-lg text-text">{prevTitle}</p>
             </div>
           </a>
         ) : <div />}
@@ -135,7 +139,7 @@ const exifFields = [
           >
             <div class="min-w-0">
               <p class="text-xs text-muted">Next</p>
-              <p class="truncate font-display text-lg text-text">{nextPhoto.data.title}</p>
+              <p class="truncate font-display text-lg text-text">{nextTitle}</p>
             </div>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-muted transition-colors group-hover:text-accent"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </a>

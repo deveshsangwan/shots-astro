@@ -28,10 +28,13 @@ const topTags = Array.from(tagMap.entries())
 
 const years = entries.map((e) => e.data.publishedAt.getFullYear());
 const yearRange = years.length > 0
-  ? `${Math.min(...years)}–${Math.max(...years)}`
+  ? Math.min(...years) === Math.max(...years)
+    ? String(Math.max(...years))
+    : `${Math.min(...years)}–${Math.max(...years)}`
   : "—";
 
 const topCamera = cameras.length > 0 ? cameras[0][0] : "—";
+const hasCameraData = cameras.length > 0;
 ---
 
 <BaseLayout title={`About | ${siteConfig.title}`} description={siteConfig.footer.bio}>
@@ -40,7 +43,6 @@ const topCamera = cameras.length > 0 ? cameras[0][0] : "—";
   <main class="mx-auto w-full max-w-6xl px-5 py-12 md:px-8 md:py-20">
     <!-- Hero -->
     <div class="relative" data-animate>
-      <div class="absolute -left-4 top-2 h-20 w-20 rounded-full bg-accent/20 blur-2xl md:-left-8 md:h-28 md:w-28" aria-hidden="true" />
       <p class="relative text-xs tracking-[0.24em] text-muted uppercase">About</p>
       <h1 class="relative mt-3 max-w-3xl font-display text-5xl leading-tight text-text md:text-7xl">
         Photography with intent.
@@ -58,7 +60,7 @@ const topCamera = cameras.length > 0 ? cameras[0][0] : "—";
           This site runs on Astro with a file-based workflow so new photographs can be published quickly while keeping full ownership of assets and metadata.
         </p>
       </div>
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-2 gap-4 md:self-start">
         <div class="rounded-xl border border-white/10 bg-surface/70 p-5">
           <p class="text-xs tracking-[0.2em] text-muted uppercase">Photos</p>
           <p class="mt-2 font-display text-4xl text-text">{totalPhotos}</p>
@@ -67,10 +69,12 @@ const topCamera = cameras.length > 0 ? cameras[0][0] : "—";
           <p class="text-xs tracking-[0.2em] text-muted uppercase">Years</p>
           <p class="mt-2 font-display text-4xl text-text">{yearRange}</p>
         </div>
-        <div class="col-span-2 rounded-xl border border-white/10 bg-surface/70 p-5">
-          <p class="text-xs tracking-[0.2em] text-muted uppercase">Favorite Camera</p>
-          <p class="mt-2 font-display text-2xl text-text">{topCamera}</p>
-        </div>
+        {hasCameraData && (
+          <div class="col-span-2 rounded-xl border border-white/10 bg-surface/70 p-5">
+            <p class="text-xs tracking-[0.2em] text-muted uppercase">Favorite Camera</p>
+            <p class="mt-2 font-display text-2xl text-text">{topCamera}</p>
+          </div>
+        )}
       </div>
     </div>
 
