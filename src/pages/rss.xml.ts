@@ -17,7 +17,7 @@ export const GET: APIRoute = async ({ site }) => {
 
   const items = sorted
     .map((photo) => {
-      const url = `${base}/photo/${photo.slug}/`;
+      const url = `${base}/photo/${photo.id}/`;
       const title = escapeXml(photo.data.title);
       const description = escapeXml(photo.data.description ?? "");
       const pubDate = new Date(photo.data.publishedAt).toUTCString();

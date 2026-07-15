@@ -31,7 +31,7 @@ const yearRange = years.length > 0
   : "Not recorded";
 
 const topCamera = cameras[0]?.[0] ?? "Not recorded";
-const entryById = new Map(sortedEntries.map((entry) => [entry.slug, entry]));
+const entryById = new Map(sortedEntries.map((entry) => [entry.id, entry]));
 const contactSheet = selectedPhotoIds
   .slice(0, 3)
   .map((id) => entryById.get(id))
@@ -62,7 +62,7 @@ const contactSheet = selectedPhotoIds
         <div class="grid grid-cols-[1.12fr_0.88fr] gap-3" aria-label="Selected photographs">
           {contactSheet.map((entry, index) => (
             <a
-              href={withBase(`photo/${entry.slug}/`)}
+              href={withBase(`photo/${entry.id}/`)}
               class:list={[
                 "group block overflow-hidden rounded-xl border border-line bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
                 index === 0 && "row-span-2"

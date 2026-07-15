@@ -18,7 +18,7 @@ const sortedEntries = entries.sort(
 const photos: PhotoViewModel[] = sortedEntries.map((entry, index) => {
   const thumb = entry.data.thumbnail ?? entry.data.image;
   return {
-    id: entry.slug,
+    id: entry.id,
     title: getPhotoDisplayTitle(entry.data.title, index),
     description: entry.data.description ?? "Untitled frame.",
     publishedAt: entry.data.publishedAt.toISOString(),

@@ -8,7 +8,7 @@ export async function GET() {
   );
 
   const payload = sorted.map((entry, index) => ({
-    id: entry.slug,
+    id: entry.id,
     title: getPhotoDisplayTitle(entry.data.title, index),
     description: entry.data.description ?? "",
     publishedAt: entry.data.publishedAt.toISOString(),

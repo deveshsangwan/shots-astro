@@ -15,7 +15,7 @@ export async function getStaticPaths() {
     (a, b) => b.data.publishedAt.getTime() - a.data.publishedAt.getTime()
   );
   return sorted.map((photo, index) => ({
-    params: { slug: photo.slug },
+    params: { slug: photo.id },
     props: {
       photo,
       displayTitle: getPhotoDisplayTitle(photo.data.title, index),
@@ -56,7 +56,7 @@ const exifFields = [
 ].filter(({ value }) => hasDisplayValue(value));
 ---
 
-<BaseLayout title={pageTitle} description={description} ogImage={withBase(`social/${photo.slug}.svg`)}>
+<BaseLayout title={pageTitle} description={description} ogImage={withBase(`social/${photo.id}.svg`)}>
   <SiteHeader />
 
   <main class="mx-auto w-full max-w-7xl px-5 py-8 md:px-8 md:py-12">
@@ -128,7 +128,7 @@ const exifFields = [
       <nav class="mt-12 grid gap-4 border-t border-line pt-8 sm:grid-cols-2" data-animate style="transition-delay: 200ms" aria-label="Adjacent photographs">
         {prevPhoto ? (
           <a
-            href={withBase(`photo/${prevPhoto.slug}/`)}
+            href={withBase(`photo/${prevPhoto.id}/`)}
             class="group rounded-xl border border-line bg-surface p-4 transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <p class="text-xs text-muted">Previous photograph</p>
@@ -137,7 +137,7 @@ const exifFields = [
         ) : <div />}
         {nextPhoto ? (
           <a
-            href={withBase(`photo/${nextPhoto.slug}/`)}
+            href={withBase(`photo/${nextPhoto.id}/`)}
             class="group rounded-xl border border-line bg-surface p-4 text-right transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <p class="text-xs text-muted">Next photograph</p>

@@ -1,7 +1,9 @@
-import { defineCollection, z } from "astro:content";
+import { defineCollection } from "astro:content";
+import { glob } from "astro/loaders";
+import { z } from "astro/zod";
 
 const photos = defineCollection({
-  type: "content",
+  loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/photos" }),
   schema: ({ image }) =>
     z.object({
       title: z.coerce.string(),
@@ -25,7 +27,7 @@ const photos = defineCollection({
       source: z
         .object({
           type: z.enum(["manual", "workflow", "imported"]).default("manual"),
-          url: z.string().url().optional()
+          url: z.url().optional()
         })
         .optional()
     })
