@@ -1,79 +1,81 @@
 <dialog
   id="photo-lightbox"
-  class="backdrop:bg-black/90 m-0 h-full max-h-none w-full max-w-none bg-transparent p-0 text-text"
+  class="backdrop:bg-black/90 m-0 h-[100dvh] max-h-none w-full max-w-none overflow-y-auto bg-transparent p-0 text-text"
+  aria-label="Photograph viewer"
 >
-  <div class="relative mx-auto flex h-full max-w-7xl flex-col px-4 py-6 md:px-8">
-    <div class="mb-4 flex items-center justify-between gap-2">
-      <p id="lightbox-position" class="text-xs tracking-[0.2em] text-muted uppercase"></p>
+  <div class="relative mx-auto flex min-h-full w-full max-w-7xl flex-col px-4 py-4 sm:px-5 md:h-full md:px-8 md:py-6">
+    <div class="mb-4 flex items-center justify-between gap-3">
+      <p id="lightbox-position" class="text-sm font-medium text-text"></p>
       <button
         type="button"
         id="lightbox-close"
-        class="rounded-full border border-white/20 px-3 py-2 text-sm text-muted transition-colors hover:border-accent/40 hover:text-text focus-visible:ring-2 focus-visible:ring-accent"
+        class="rounded-full border border-lineStrong bg-surface px-4 py-2 text-sm text-text transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent active:scale-[0.98]"
       >
         Close
       </button>
     </div>
 
-    <div class="grid h-full min-h-0 gap-4 md:grid-cols-[1.8fr_1fr]">
+    <div class="grid min-h-0 flex-1 gap-4 md:grid-cols-[minmax(0,1.8fr)_minmax(16rem,0.72fr)]">
       <div
         id="lightbox-media-container"
-        class="relative flex min-h-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-black/60"
+        class="relative flex min-h-[48dvh] items-center justify-center overflow-hidden rounded-xl border border-line bg-black/80 md:min-h-0"
       >
-        <img id="lightbox-image" alt="" class="max-h-[76vh] w-auto max-w-full object-contain" />
+        <p id="lightbox-status" class="px-6 text-center text-sm text-white/85" role="status">Loading photograph</p>
+        <img id="lightbox-image" alt="" class="hidden max-h-[58dvh] w-auto max-w-full object-contain md:max-h-[78dvh]" />
 
         <button
           type="button"
           id="lightbox-prev"
-          class="absolute left-3 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/50 text-white/75 backdrop-blur-md transition-colors hover:border-accent/40 hover:text-white focus-visible:ring-2 focus-visible:ring-accent"
-          aria-label="Previous image"
+          class="absolute left-3 rounded-full border border-white/35 bg-black/65 px-3 py-2.5 text-xs font-semibold text-white backdrop-blur-md transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          aria-label="Previous photograph"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          Previous
         </button>
         <button
           type="button"
           id="lightbox-next"
-          class="absolute right-3 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/50 text-white/75 backdrop-blur-md transition-colors hover:border-accent/40 hover:text-white focus-visible:ring-2 focus-visible:ring-accent"
-          aria-label="Next image"
+          class="absolute right-3 rounded-full border border-white/35 bg-black/65 px-3 py-2.5 text-xs font-semibold text-white backdrop-blur-md transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          aria-label="Next photograph"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          Next
         </button>
       </div>
 
-      <aside class="rounded-xl border border-white/10 bg-surface/95 p-4">
+      <aside class="self-start rounded-xl border border-line bg-surface p-5 md:w-full">
         <p id="lightbox-title" class="font-display text-2xl text-text"></p>
         <p id="lightbox-description" class="mt-2 text-sm leading-6 text-muted"></p>
-        <dl class="mt-5 grid grid-cols-2 gap-3 text-sm">
+        <dl class="mt-5 grid grid-cols-2 gap-x-4 gap-y-5 text-sm">
           <div data-lightbox-meta>
             <dt class="text-muted">Date</dt>
-            <dd id="lightbox-date" class="text-text"></dd>
+            <dd id="lightbox-date" class="mt-1 font-medium text-text"></dd>
           </div>
           <div data-lightbox-meta>
             <dt class="text-muted">Location</dt>
-            <dd id="lightbox-location" class="text-text"></dd>
+            <dd id="lightbox-location" class="mt-1 font-medium text-text"></dd>
           </div>
           <div data-lightbox-meta>
             <dt class="text-muted">Camera</dt>
-            <dd id="lightbox-camera" class="text-text"></dd>
+            <dd id="lightbox-camera" class="mt-1 font-medium text-text"></dd>
           </div>
           <div data-lightbox-meta>
             <dt class="text-muted">Lens</dt>
-            <dd id="lightbox-lens" class="text-text"></dd>
+            <dd id="lightbox-lens" class="mt-1 font-medium text-text"></dd>
           </div>
           <div data-lightbox-meta>
             <dt class="text-muted">Aperture</dt>
-            <dd id="lightbox-aperture" class="text-text"></dd>
+            <dd id="lightbox-aperture" class="mt-1 font-medium text-text"></dd>
           </div>
           <div data-lightbox-meta>
             <dt class="text-muted">Shutter</dt>
-            <dd id="lightbox-shutter" class="text-text"></dd>
+            <dd id="lightbox-shutter" class="mt-1 font-medium text-text"></dd>
           </div>
           <div data-lightbox-meta>
             <dt class="text-muted">ISO</dt>
-            <dd id="lightbox-iso" class="text-text"></dd>
+            <dd id="lightbox-iso" class="mt-1 font-medium text-text"></dd>
           </div>
           <div data-lightbox-meta>
-            <dt class="text-muted">Focal Length</dt>
-            <dd id="lightbox-focal-length" class="text-text"></dd>
+            <dt class="text-muted">Focal length</dt>
+            <dd id="lightbox-focal-length" class="mt-1 font-medium text-text"></dd>
           </div>
         </dl>
       </aside>

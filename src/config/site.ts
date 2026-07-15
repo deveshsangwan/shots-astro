@@ -1,12 +1,13 @@
 export const siteConfig = {
   title: "Photography by Devesh Sangwan",
-  subtitle: "See the world through my eyes!",
+  shortTitle: "Devesh Sangwan",
+  subtitle: "Landscapes, cities, quiet moments.",
   author: "Devesh Sangwan",
-  description: "A modern photography portfolio focused on storytelling through light, texture, and moments.",
+  description: "A photography portfolio of landscapes, cities, and quiet moments by Devesh Sangwan.",
   url: "https://shots.deveshsangwan.com",
   footer: {
-    name: "Hey there, I am Devesh Sangwan",
-    bio: "A computer engineering student from New Delhi documenting moments through photography."
+    name: "Devesh Sangwan",
+    bio: "A photographer from New Delhi documenting landscapes, cities, and quiet moments."
   },
   social: {
     github: "https://github.com/deveshsangwan",

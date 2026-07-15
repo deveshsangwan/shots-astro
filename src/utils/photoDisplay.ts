@@ -16,5 +16,5 @@ export function getPhotoDisplayTitle(title: string, fallbackIndex?: number): str
 }
 
 export function hasDisplayValue(value: string | null | undefined): boolean {
-  return Boolean(value && value.trim() && value.trim() !== "—");
+  return Boolean(value && value.trim() && value.trim() !== "-");
 }

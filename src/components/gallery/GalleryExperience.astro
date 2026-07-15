@@ -7,143 +7,154 @@ import { withBase } from "@/utils/withBase";
 interface Props {
   photos: PhotoViewModel[];
   tags: string[];
+  selectedPhotoIds?: string[];
 }
 
-const { photos, tags } = Astro.props;
-const INITIAL_VISIBLE_COUNT = 12;
-const LOAD_MORE_STEP = 12;
-const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
+const {
+  photos: allPhotos,
+  tags,
+  selectedPhotoIds = []
+} = Astro.props;
+
+const photosById = new Map(allPhotos.map((photo) => [photo.id, photo]));
+const selectedPhotos = selectedPhotoIds
+  .map((id) => photosById.get(id))
+  .filter((photo): photo is PhotoViewModel => Boolean(photo));
+const selectedSet = new Set(selectedPhotos.map((photo) => photo.id));
+const photos = [
+  ...selectedPhotos,
+  ...allPhotos.filter((photo) => !selectedSet.has(photo.id))
+];
+const initialVisibleCount = selectedPhotos.length || Math.min(photos.length, 12);
 ---
 
-<section class="mx-auto w-full max-w-7xl px-5 py-8 md:px-8 md:py-12">
-  <div class="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-    <p class="text-sm text-muted">{photos.length} {photos.length === 1 ? "photo" : "photos"}</p>
-    {tags.length > 0 && (
-      <nav class="flex flex-wrap gap-2" aria-label="Filter by tag">
+<section class="mx-auto w-full max-w-7xl px-5 py-10 md:px-8 md:py-14" aria-labelledby="gallery-heading">
+  <div class="max-w-2xl">
+    <h2 id="gallery-heading" class="font-display text-3xl text-text md:text-4xl">Selected photographs</h2>
+    <p class="mt-3 max-w-xl text-sm leading-7 text-muted md:text-base">
+      A focused edit from landscapes, city streets, and the quieter frames in between.
+    </p>
+
+    {photos.length > initialVisibleCount && (
+      <div class="mt-5 flex flex-wrap items-center gap-3">
         <button
+          id="archive-toggle"
           type="button"
-          class="tag-pill rounded-full border border-accent bg-accent/15 px-4 py-1.5 text-sm text-accent transition-colors"
-          data-tag=""
-          aria-pressed="true"
+          class="rounded-full border border-lineStrong px-5 py-2.5 text-sm font-medium text-text transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent active:scale-[0.98]"
+          aria-expanded="false"
+          data-collapsed-label="View full archive"
+          data-expanded-label="Show selected photographs"
         >
-          All
+          View full archive
         </button>
-        {tags.map((tag) => (
-          <button
-            type="button"
-            class="tag-pill rounded-full border border-white/15 px-4 py-1.5 text-sm text-muted transition-colors hover:border-accent/40 hover:text-accent focus-visible:border-accent/40 focus-visible:text-accent"
-            data-tag={tag}
-            aria-pressed="false"
-          >
-            {tag}
-          </button>
-        ))}
-      </nav>
+        <p id="gallery-count" class="text-sm text-muted" aria-live="polite">
+          Showing {initialVisibleCount} of {photos.length}
+        </p>
+      </div>
     )}
   </div>
 
+  {tags.length > 0 && (
+    <nav class="mt-8 flex flex-wrap gap-2" aria-label="Filter photographs by theme">
+      <button
+        type="button"
+        class="tag-pill rounded-full border border-accent bg-accent/10 px-4 py-1.5 text-sm text-accent transition-colors"
+        data-tag=""
+        aria-pressed="true"
+      >
+        All
+      </button>
+      {tags.map((tag) => (
+        <button
+          type="button"
+          class="tag-pill rounded-full border border-lineStrong px-4 py-1.5 text-sm text-muted transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          data-tag={tag}
+          aria-pressed="false"
+        >
+          {tag}
+        </button>
+      ))}
+    </nav>
+  )}
+
   {
     photos.length > 0 ? (
-      <div id="photo-grid" class="masonry-grid">
+      <div id="photo-grid" class="masonry-grid mt-9">
         {photos.map((photo, index) => (
           <article
-            class:list={[
-              "group relative overflow-hidden rounded-xl border border-white/10 bg-surface/80 transition-colors focus-within:border-accent/40",
-              index >= initialVisibleCount && "hidden"
-            ]}
+            class:list={["group min-w-0", index >= initialVisibleCount && "hidden"]}
             data-photo-card
             data-animate
             data-photo-id={photo.id}
             data-tags={photo.tags.join("|")}
-            data-photo-index={index}
             data-photo-aspect={photo.thumbnail.width / photo.thumbnail.height}
           >
             <button
-              class="block w-full cursor-pointer text-left leading-none focus:outline-none"
+              class="block w-full cursor-zoom-in overflow-hidden rounded-xl border border-line bg-surface text-left leading-none transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-bg"
               type="button"
               data-open-lightbox={photo.id}
-              aria-label={`Open ${photo.title}`}
+              aria-label={`Open ${photo.title} in the image viewer`}
             >
-              <div class="relative overflow-hidden">
-                <Image
-                  src={photo.thumbnailAsset}
-                  alt={photo.title}
-                  widths={[200, 280, 360, 480]}
-                  sizes="(min-width: 1280px) 23vw, (min-width: 1024px) 31vw, (min-width: 640px) 46vw, 92vw"
-                  format="webp"
-                  quality={index === 0 ? 64 : 60}
-                  loading={index === 0 ? "eager" : "lazy"}
-                  fetchpriority={index === 0 ? "high" : "auto"}
-                  decoding="async"
-                  class="block w-full align-top object-cover transition-transform duration-slow group-hover:scale-[1.04] group-focus-within:scale-[1.04]"
-                />
-                {photo.featured && (
-                  <span class="absolute left-3 top-3 z-10 rounded-full bg-accent px-3 py-1 text-xs font-medium text-black">
-                    Featured
-                  </span>
-                )}
-                <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-85 transition-opacity duration-medium group-hover:opacity-100 group-focus-within:opacity-100" />
-                <div class="absolute inset-x-0 bottom-0 p-4">
-                  <p class="text-[13px] font-semibold leading-snug tracking-[0.08em] text-white/95 uppercase drop-shadow md:text-sm">
-                    {photo.location || photo.title}
-                  </p>
-                  {photo.location && (
-                    <p class="mt-1 line-clamp-1 text-xs font-medium leading-snug text-white/70 drop-shadow">
-                      {photo.title}
-                    </p>
-                  )}
-                  {photo.tags.length > 0 && (
-                    <div class="mt-2 flex max-h-0 flex-wrap gap-1.5 overflow-hidden opacity-0 transition-all duration-medium group-hover:max-h-12 group-hover:opacity-100 group-focus-within:max-h-12 group-focus-within:opacity-100">
-                      {photo.tags.slice(0, 3).map((tag) => (
-                        <span class="rounded-full bg-white/15 px-2 py-0.5 text-[11px] text-white/80 backdrop-blur-sm">{tag}</span>
-                      ))}
-                      {photo.tags.length > 3 && (
-                        <span class="rounded-full bg-white/15 px-2 py-0.5 text-[11px] text-white/80 backdrop-blur-sm">+{photo.tags.length - 3}</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <Image
+                src={photo.thumbnailAsset}
+                alt={photo.title}
+                widths={[320, 480, 640, 800]}
+                sizes="(min-width: 1280px) 23vw, (min-width: 1024px) 31vw, (min-width: 640px) 46vw, 92vw"
+                format="webp"
+                quality={index === 0 ? 72 : 68}
+                loading={index === 0 ? "eager" : "lazy"}
+                fetchpriority={index === 0 ? "high" : "auto"}
+                decoding="async"
+                class="block w-full align-top object-cover transition-transform duration-slow group-hover:scale-[1.025] group-focus-within:scale-[1.025]"
+              />
             </button>
-            <a
-              href={withBase(`photo/${photo.id}/`)}
-              class="pointer-events-none absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/35 opacity-0 backdrop-blur-md transition-all duration-medium hover:bg-accent hover:text-black focus:pointer-events-auto focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
-              aria-label={`View details for ${photo.title}`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
-            </a>
+            <div class="flex items-start justify-between gap-3 pt-3">
+              <div class="min-w-0">
+                {photo.location && (
+                  <p class="text-xs font-medium leading-5 tracking-[0.08em] text-muted uppercase">
+                    {photo.location}
+                  </p>
+                )}
+                <a
+                  href={withBase(`photo/${photo.id}/`)}
+                  class="mt-1 block truncate font-display text-xl text-text transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  {photo.title}
+                </a>
+              </div>
+            </div>
           </article>
         ))}
       </div>
-      <div id="gallery-scroll-sentinel" class="h-px w-full" aria-hidden="true"></div>
     ) : (
-      <div class="rounded-xl border border-dashed border-white/20 bg-surface/40 px-6 py-12 text-center">
-        <p class="font-display text-2xl text-text">No photos yet</p>
+      <div class="mt-9 rounded-xl border border-dashed border-lineStrong bg-surface px-6 py-12 text-center">
+        <p class="font-display text-2xl text-text">No photographs yet</p>
         <p class="mx-auto mt-3 max-w-xl text-sm leading-7 text-muted">
-          Add your first image with <code class="rounded bg-black/40 px-2 py-1 text-accent">bun run add-photo -- --input /path/to/image.jpg --title "My Shot"</code>.
+          The first collection is still being prepared.
         </p>
       </div>
     )
   }
 
-  <p id="empty-filter-state" class="mt-6 hidden rounded-xl border border-dashed border-white/20 bg-surface/40 px-6 py-8 text-center text-muted">
-    No photos match this tag.
+  <p id="empty-filter-state" class="mt-6 hidden rounded-xl border border-dashed border-lineStrong bg-surface px-6 py-8 text-center text-muted">
+    No photographs match this theme.
   </p>
 </section>
 
 <PhotoLightbox />
 
-<script is:inline define:vars={{ photoDataUrl: withBase("photo-data.json"), initialVisibleCount, loadMoreStep: LOAD_MORE_STEP }}>
+<script is:inline define:vars={{ photoDataUrl: withBase("photo-data.json"), initialVisibleCount }}>
   // @ts-nocheck
   const el = (id) => document.getElementById(id);
 
-  const photosById = new Map();
+  const photoRecords = new Map();
   let photosPromise = null;
   const grid = el("photo-grid");
   const cards = Array.from(document.querySelectorAll("[data-photo-card]"));
   const emptyFilterState = el("empty-filter-state");
   const tagPills = Array.from(document.querySelectorAll(".tag-pill"));
-  const scrollSentinel = el("gallery-scroll-sentinel");
+  const archiveToggle = el("archive-toggle");
+  const galleryCount = el("gallery-count");
 
   const dialog = el("photo-lightbox");
   const dialogImage = el("lightbox-image");
@@ -158,6 +169,7 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
   const dialogIso = el("lightbox-iso");
   const dialogFocalLength = el("lightbox-focal-length");
   const dialogPosition = el("lightbox-position");
+  const dialogStatus = el("lightbox-status");
   const prevButton = el("lightbox-prev");
   const nextButton = el("lightbox-next");
   const closeButton = el("lightbox-close");
@@ -168,16 +180,14 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
   let filteredPhotoIds = [];
   let activeIndex = -1;
   let activeTag = "";
+  let archiveExpanded = false;
+  let visibleLimit = initialVisibleCount;
   let touchStartX = null;
   let touchEndX = null;
-  let visibleLimit = initialVisibleCount;
-  let lastTotalMatchCount = 0;
-  let isLoadingMore = false;
-  let scrollObserver = null;
   let currentColumnCount = 0;
 
-  const activePillClasses = "border-accent bg-accent/15 text-accent";
-  const inactivePillClasses = "border-white/15 text-muted";
+  const activePillClasses = "border-accent bg-accent/10 text-accent";
+  const inactivePillClasses = "border-lineStrong text-muted";
 
   const setActiveTag = (tag) => {
     activeTag = tag;
@@ -185,7 +195,7 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
       const isActive = pill.getAttribute("data-tag") === tag;
       pill.setAttribute("aria-pressed", String(isActive));
       pill.className = pill.className
-        .replace(/border-accent|bg-accent\/15|text-accent|border-white\/15|text-muted/g, "")
+        .replace(/border-accent|bg-accent\/10|text-accent|border-lineStrong|text-muted/g, "")
         .trim();
       pill.classList.add(...(isActive ? activePillClasses : inactivePillClasses).split(" "));
     });
@@ -228,9 +238,17 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
       columnHeights[targetIndex] += 1 / aspect;
     });
 
-    hiddenCards.forEach((card) => {
-      grid.appendChild(card);
-    });
+    hiddenCards.forEach((card) => grid.appendChild(card));
+  };
+
+  const updateArchiveControls = (visibleCount) => {
+    if (archiveToggle) {
+      archiveToggle.setAttribute("aria-expanded", String(archiveExpanded));
+      archiveToggle.textContent = archiveExpanded
+        ? archiveToggle.dataset.expandedLabel
+        : archiveToggle.dataset.collapsedLabel;
+    }
+    if (galleryCount) galleryCount.textContent = `Showing ${visibleCount} of ${cards.length}`;
   };
 
   const applyFilter = () => {
@@ -244,73 +262,58 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
       const tags = (card.getAttribute("data-tags") ?? "").split("|").filter(Boolean);
       const isMatch = !activeTag || tags.includes(activeTag);
 
-      if (isMatch) {
-        totalMatchCount += 1;
-        const isVisible = visibleMatchCount < visibleLimit;
-        card.classList.toggle("hidden", !isVisible);
-        const id = card.getAttribute("data-photo-id");
-        if (id) filteredPhotoIds.push(id);
-        if (isVisible) {
-          visibleCards.push(card);
-        } else {
-          hiddenCards.push(card);
-        }
-        visibleMatchCount += 1;
-      } else {
+      if (!isMatch) {
         card.classList.add("hidden");
         hiddenCards.push(card);
+        return;
       }
+
+      totalMatchCount += 1;
+      const isVisible = visibleMatchCount < visibleLimit;
+      card.classList.toggle("hidden", !isVisible);
+      if (isVisible) {
+        const id = card.getAttribute("data-photo-id");
+        if (id) filteredPhotoIds.push(id);
+        visibleCards.push(card);
+      } else {
+        hiddenCards.push(card);
+      }
+      visibleMatchCount += 1;
     });
 
     buildColumns(visibleCards, hiddenCards);
-
-    if (emptyFilterState) {
-      emptyFilterState.classList.toggle("hidden", totalMatchCount !== 0 || cards.length === 0);
-    }
-    lastTotalMatchCount = totalMatchCount;
-
+    emptyFilterState?.classList.toggle("hidden", totalMatchCount !== 0 || cards.length === 0);
+    updateArchiveControls(visibleCards.length);
     updateURL();
-    updateScrollObserver();
   };
 
-  const canLoadMore = () => lastTotalMatchCount > visibleLimit;
-
-  const loadNextChunk = () => {
-    if (isLoadingMore || !canLoadMore()) return;
-    isLoadingMore = true;
-    visibleLimit += loadMoreStep;
+  const setArchiveExpanded = (expanded) => {
+    archiveExpanded = expanded;
+    visibleLimit = expanded ? cards.length : initialVisibleCount;
     applyFilter();
-    isLoadingMore = false;
-  };
-
-  const updateScrollObserver = () => {
-    if (!scrollObserver || !scrollSentinel) return;
-    if (canLoadMore()) {
-      scrollObserver.observe(scrollSentinel);
-    } else {
-      scrollObserver.unobserve(scrollSentinel);
-    }
   };
 
   const readFromURL = () => {
     const params = new URLSearchParams(window.location.search);
     const tag = params.get("tag") ?? "";
     setActiveTag(tag);
+    if (tag) {
+      archiveExpanded = true;
+      visibleLimit = cards.length;
+    }
   };
 
-  const hasValue = (value) => Boolean(value && String(value).trim() && String(value).trim() !== "—");
+  const hasValue = (value) => Boolean(value && String(value).trim() && String(value).trim() !== "-");
 
   const fill = (element, value, hideEmpty = false) => {
     if (!element) return;
     const isVisible = hasValue(value);
     element.textContent = isVisible ? value : "";
-    if (hideEmpty) {
-      element.closest("[data-lightbox-meta]")?.classList.toggle("hidden", !isVisible);
-    }
+    if (hideEmpty) element.closest("[data-lightbox-meta]")?.classList.toggle("hidden", !isVisible);
   };
 
   const ensurePhotosLoaded = async () => {
-    if (photosById.size > 0) return true;
+    if (photoRecords.size > 0) return true;
     if (!photosPromise) {
       photosPromise = fetch(photoDataUrl, { credentials: "same-origin" })
         .then((response) => {
@@ -320,9 +323,9 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
         .then((payload) => {
           if (!Array.isArray(payload)) return false;
           payload.forEach((photo) => {
-            if (photo?.id) photosById.set(String(photo.id), photo);
+            if (photo?.id) photoRecords.set(String(photo.id), photo);
           });
-          return photosById.size > 0;
+          return photoRecords.size > 0;
         })
         .catch((error) => {
           console.error(error);
@@ -333,10 +336,9 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
   };
 
   const renderActivePhoto = () => {
-    if (activeIndex < 0 || activeIndex >= filteredPhotoIds.length) return;
-    const currentId = filteredPhotoIds[activeIndex];
-    const currentPhoto = photosById.get(currentId);
-    if (!currentPhoto) return;
+    if (activeIndex < 0 || activeIndex >= filteredPhotoIds.length) return false;
+    const currentPhoto = photoRecords.get(filteredPhotoIds[activeIndex]);
+    if (!currentPhoto) return false;
 
     dialogImage.setAttribute("src", currentPhoto.fullSrc);
     dialogImage.setAttribute("alt", currentPhoto.title);
@@ -352,17 +354,28 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
     fill(dialogIso, currentPhoto.iso, true);
     fill(dialogFocalLength, currentPhoto.focalLength, true);
     fill(dialogPosition, `${activeIndex + 1} / ${filteredPhotoIds.length}`);
+    dialogStatus?.classList.add("hidden");
+    dialogImage.classList.remove("hidden");
+    return true;
   };
 
   const openLightbox = async (photoId) => {
     if (!lightboxEnabled || filteredPhotoIds.length === 0) return;
-    const loaded = await ensurePhotosLoaded();
-    if (!loaded) return;
     activeIndex = filteredPhotoIds.indexOf(photoId);
     if (activeIndex < 0) activeIndex = 0;
-    renderActivePhoto();
+
+    dialogImage.classList.add("hidden");
+    if (dialogStatus) {
+      dialogStatus.textContent = "Loading photograph";
+      dialogStatus.classList.remove("hidden");
+    }
     dialog.showModal();
     document.body.style.overflow = "hidden";
+
+    const loaded = await ensurePhotosLoaded();
+    if (!loaded || !renderActivePhoto()) {
+      if (dialogStatus) dialogStatus.textContent = "The photograph could not be loaded.";
+    }
   };
 
   const closeLightbox = () => {
@@ -380,38 +393,28 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
   document.querySelectorAll("[data-open-lightbox]").forEach((button) => {
     button.addEventListener("click", () => {
       const id = button.getAttribute("data-open-lightbox");
-      if (!id) return;
-      void openLightbox(id);
+      if (id) void openLightbox(id);
     });
   });
+
+  archiveToggle?.addEventListener("click", () => setArchiveExpanded(!archiveExpanded));
 
   tagPills.forEach((pill) => {
     pill.addEventListener("click", () => {
       setActiveTag(pill.getAttribute("data-tag") ?? "");
-      visibleLimit = initialVisibleCount;
-      isLoadingMore = false;
+      if (activeTag) {
+        archiveExpanded = true;
+        visibleLimit = cards.length;
+      }
       applyFilter();
     });
   });
 
-  if ("IntersectionObserver" in window && scrollSentinel) {
-    scrollObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) loadNextChunk();
-        });
-      },
-      {
-        rootMargin: "400px 0px 400px 0px",
-        threshold: 0
-      }
-    );
-  }
-
-  window.addEventListener("resize", () => {
-    const nextColumnCount = getColumnCount();
-    if (nextColumnCount === currentColumnCount) return;
-    applyFilter();
+  [640, 1024, 1280].forEach((breakpoint) => {
+    window.matchMedia(`(min-width: ${breakpoint}px)`).addEventListener("change", () => {
+      const nextColumnCount = getColumnCount();
+      if (nextColumnCount !== currentColumnCount) applyFilter();
+    });
   });
 
   if (lightboxEnabled) {
@@ -427,7 +430,6 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
 
     document.addEventListener("keydown", (event) => {
       if (!dialog.open) return;
-      if (event.key === "Escape") closeLightbox();
       if (event.key === "ArrowLeft") stepLightbox(-1);
       if (event.key === "ArrowRight") stepLightbox(1);
     });
@@ -447,32 +449,4 @@ const initialVisibleCount = Math.min(photos.length, INITIAL_VISIBLE_COUNT);
 
   readFromURL();
   applyFilter();
-
-  const initDeferred = () => {
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!prefersReducedMotion) {
-      const animElements = document.querySelectorAll("[data-animate]");
-      let visibleIndex = 0;
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const animatedEl = entry.target;
-            animatedEl.style.transitionDelay = `${(visibleIndex % 4) * 80}ms`;
-            visibleIndex++;
-            animatedEl.classList.add("is-visible");
-            observer.unobserve(animatedEl);
-          }
-        });
-      }, { threshold: 0.08 });
-      animElements.forEach((animatedEl) => observer.observe(animatedEl));
-    } else {
-      document.querySelectorAll("[data-animate]").forEach((animatedEl) => animatedEl.classList.add("is-visible"));
-    }
-  };
-
-  if ("requestIdleCallback" in window) {
-    window.requestIdleCallback(() => initDeferred(), { timeout: 800 });
-  } else {
-    setTimeout(initDeferred, 120);
-  }
 </script>

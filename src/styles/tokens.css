@@ -1,10 +1,14 @@
 :root {
   --color-bg: 12 12 14;
   --color-surface: 24 24 30;
-  --color-muted: 118 118 133;
+  --color-surface-soft: 31 31 38;
+  --color-muted: 158 158 173;
   --color-text: 242 242 245;
   --color-accent: 246 180 96;
   --color-accent-soft: 255 218 171;
+  --color-accent-ink: 27 19 10;
+  --color-line: 50 50 60;
+  --color-line-strong: 79 79 92;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -34,9 +38,13 @@
   :root {
     --color-bg: 248 248 251;
     --color-surface: 255 255 255;
-    --color-muted: 96 98 110;
+    --color-surface-soft: 241 241 246;
+    --color-muted: 78 80 93;
     --color-text: 17 20 29;
-    --color-accent: 168 88 24;
+    --color-accent: 151 76 18;
     --color-accent-soft: 235 196 151;
+    --color-accent-ink: 255 255 255;
+    --color-line: 220 220 229;
+    --color-line-strong: 185 185 198;
   }
 }

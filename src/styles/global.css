@@ -4,8 +4,9 @@
 @tailwind utilities;
 
 :root {
-  --font-sans-stack: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-display-stack: "Playfair Display", Georgia, "Times New Roman", serif;
+  color-scheme: light dark;
+  --font-sans-stack: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display-stack: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
 }
 
 html,
@@ -15,6 +16,7 @@ body {
   background: rgb(var(--color-bg));
   color: rgb(var(--color-text));
   font-family: var(--font-sans-stack);
+  overflow-wrap: anywhere;
 }
 
 *,
@@ -42,14 +44,14 @@ img {
   color: rgb(var(--color-text));
 }
 
-/* Scroll-triggered entrance animations */
-[data-animate] {
+/* Content stays visible without JavaScript. The JS class enables modest reveals. */
+.js [data-animate] {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translateY(16px);
+  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
-[data-animate].is-visible {
+.js [data-animate].is-visible {
   opacity: 1;
   transform: translateY(0);
 }
@@ -83,7 +85,7 @@ img {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  [data-animate] {
+  .js [data-animate] {
     opacity: 1;
     transform: none;
   }
