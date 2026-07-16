@@ -59,17 +59,16 @@ const exifFields = [
 <BaseLayout title={pageTitle} description={description} ogImage={withBase(`social/${photo.id}.svg`)}>
   <SiteHeader />
 
-  <main class="mx-auto w-full max-w-7xl px-5 py-8 md:px-8 md:py-12">
-    <!-- Hero image with floating back button -->
-    <div class="relative" data-animate>
-      <a
-        href={withBase()}
-        class="absolute left-4 top-4 z-10 rounded-full border border-white/35 bg-black/65 px-4 py-2 text-sm font-medium text-white backdrop-blur-md transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-        aria-label="Back to gallery"
-      >
-        Back to gallery
-      </a>
-      <div class="overflow-hidden rounded-xl border border-line shadow-elevated">
+  <main class="mx-auto w-full max-w-[1600px] px-5 py-8 md:px-8 md:py-12 lg:px-12">
+    <a
+      href={withBase()}
+      class="mb-6 inline-flex border-b border-lineStrong pb-1 text-sm text-muted transition-colors duration-medium hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+    >
+      Back to gallery
+    </a>
+
+    <div data-animate>
+      <div class="overflow-hidden bg-surface">
         <Image
           src={photo.data.image}
           alt={displayTitle}
@@ -80,17 +79,15 @@ const exifFields = [
           loading="eager"
           fetchpriority="high"
           decoding="async"
-          class="w-full object-cover"
+          class="max-h-[82dvh] w-full object-contain"
         />
       </div>
     </div>
 
-    <!-- Metadata section -->
-    <div class="mt-8 border-t border-line pt-8" data-animate style="transition-delay: 120ms">
-      <div class="grid gap-8 md:grid-cols-[1.4fr_1fr] md:gap-12">
-        <!-- Left: title, description, tags -->
-        <div class="space-y-5">
-          <h1 class="font-display text-4xl leading-tight text-text md:text-5xl">{displayTitle}</h1>
+    <div class="mt-10 border-t border-line pt-8 md:mt-14 md:pt-10" data-animate style="transition-delay: 120ms">
+      <div class="grid gap-12 md:grid-cols-12 md:gap-8">
+        <div class="space-y-5 md:col-span-7">
+          <h1 class="font-display text-4xl leading-[1.02] text-text md:text-6xl">{displayTitle}</h1>
           {photo.data.description && (
             <p class="max-w-xl text-base leading-8 text-muted">{photo.data.description}</p>
           )}
@@ -99,7 +96,7 @@ const exifFields = [
               {photo.data.tags.map((tag: string) => (
                 <a
                   href={`${withBase()}?tag=${encodeURIComponent(tag)}`}
-                  class="rounded-full border border-lineStrong px-3 py-1.5 text-xs text-muted transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  class="border-b border-lineStrong pb-1 text-xs text-muted transition-colors duration-medium hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   {tag}
                 </a>
@@ -108,10 +105,9 @@ const exifFields = [
           )}
         </div>
 
-        <!-- Right: EXIF data -->
-        <div class="rounded-xl border border-line bg-surface p-5">
-          <p class="mb-4 text-xs font-semibold tracking-[0.2em] text-muted uppercase">Capture Details</p>
-          <dl class="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
+        <div class="border-t border-line pt-5 md:col-span-4 md:col-start-9">
+          <p class="mb-6 text-sm font-medium text-text">Capture details</p>
+          <dl class="grid grid-cols-2 gap-x-6 gap-y-5 text-sm">
             {exifFields.map(({ label, value }) => (
               <div>
                 <dt class="text-muted">{label}</dt>
@@ -123,25 +119,24 @@ const exifFields = [
       </div>
     </div>
 
-    <!-- Prev / Next navigation -->
     {(prevPhoto || nextPhoto) && (
-      <nav class="mt-12 grid gap-4 border-t border-line pt-8 sm:grid-cols-2" data-animate style="transition-delay: 200ms" aria-label="Adjacent photographs">
+      <nav class="mt-20 grid gap-10 border-t border-line pt-8 sm:grid-cols-2 md:mt-28" data-animate style="transition-delay: 200ms" aria-label="Adjacent photographs">
         {prevPhoto ? (
           <a
             href={withBase(`photo/${prevPhoto.id}/`)}
-            class="group rounded-xl border border-line bg-surface p-4 transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            class="group border-l border-line pl-4 transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <p class="text-xs text-muted">Previous photograph</p>
-            <p class="mt-1 truncate font-display text-lg text-text transition-colors group-hover:text-accent">{prevTitle}</p>
+            <p class="mt-2 truncate font-display text-2xl text-text transition-colors group-hover:text-accent">{prevTitle}</p>
           </a>
         ) : <div />}
         {nextPhoto ? (
           <a
             href={withBase(`photo/${nextPhoto.id}/`)}
-            class="group rounded-xl border border-line bg-surface p-4 text-right transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            class="group border-r border-line pr-4 text-right transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <p class="text-xs text-muted">Next photograph</p>
-            <p class="mt-1 truncate font-display text-lg text-text transition-colors group-hover:text-accent">{nextTitle}</p>
+            <p class="mt-2 truncate font-display text-2xl text-text transition-colors group-hover:text-accent">{nextTitle}</p>
           </a>
         ) : <div />}
       </nav>

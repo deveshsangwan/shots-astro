@@ -17,7 +17,7 @@ export default {
       },
       fontFamily: {
         sans: ["Avenir Next", "Avenir", "Helvetica Neue", "Helvetica", "Arial", "sans-serif"],
-        display: ["Iowan Old Style", "Palatino Linotype", "Book Antiqua", "Palatino", "Georgia", "serif"]
+        display: ["Avenir Next", "Avenir", "Helvetica Neue", "Helvetica", "Arial", "sans-serif"]
       },
       borderRadius: {
         sm: "var(--radius-sm)",

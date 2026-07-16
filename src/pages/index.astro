@@ -1,5 +1,6 @@
 ---
 import { getCollection } from "astro:content";
+import { Image } from "astro:assets";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import SiteHeader from "@/components/SiteHeader.astro";
 import SiteFooter from "@/components/SiteFooter.astro";
@@ -48,6 +49,7 @@ const photos: PhotoViewModel[] = sortedEntries.map((entry, index) => {
 
 const tags = Array.from(new Set(photos.flatMap((photo) => photo.tags))).sort();
 const featuredPhoto = photos.find((photo) => photo.featured) ?? photos[0];
+const heroEntry = sortedEntries.find((entry) => entry.id === "0124113922") ?? sortedEntries[0];
 ---
 
 <BaseLayout
@@ -58,42 +60,40 @@ const featuredPhoto = photos.find((photo) => photo.featured) ?? photos[0];
   <SiteHeader />
 
   <main>
-    <section class="mx-auto w-full max-w-7xl px-5 pt-12 md:px-8 md:pt-16">
-      <div class="grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.64fr)]">
-        <div>
-          <p data-animate class="text-xs tracking-[0.24em] text-muted uppercase">Photography Portfolio</p>
-          <h1 data-animate class="mt-3 max-w-2xl font-display text-4xl leading-tight text-text md:text-6xl" style="transition-delay: 80ms">
-            Cinematic moments. Minimal presentation.
-          </h1>
-          <p data-animate class="mt-4 max-w-xl text-sm leading-7 text-muted md:text-base" style="transition-delay: 160ms">
-            A curated collection of visual stories by {siteConfig.author}.
-          </p>
+    {heroEntry && (
+      <section class="relative isolate min-h-[calc(100dvh-4rem)] overflow-hidden md:min-h-[calc(100dvh-4.5rem)]">
+        <Image
+          src={heroEntry.data.image}
+          alt={heroEntry.data.title || "Sunlight filtering through a forest"}
+          widths={[768, 1280, 1600, 2200]}
+          sizes="100vw"
+          format="webp"
+          quality={84}
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+          class="hero-media absolute inset-0 h-full w-full object-cover object-[58%_center]"
+        />
+        <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,9,8,0.04)_12%,rgba(6,9,8,0.18)_45%,rgba(6,9,8,0.88)_100%)]"></div>
+
+        <div class="relative mx-auto flex min-h-[calc(100dvh-4rem)] w-full max-w-[1600px] items-end px-5 pb-12 pt-20 md:min-h-[calc(100dvh-4.5rem)] md:px-8 md:pb-16 lg:px-12">
+          <div class="hero-copy max-w-4xl text-white">
+            <h1 class="font-display text-5xl leading-[0.96] tracking-[-0.055em] sm:text-6xl md:text-7xl lg:text-[6.5rem]">
+              Light changes the place.
+            </h1>
+            <p class="mt-5 max-w-lg text-base leading-7 text-white/78 md:text-lg">
+              Landscapes and city edges across Rajasthan, Uttarakhand, Himachal Pradesh, and Delhi.
+            </p>
+            <a
+              href="#selected-photographs"
+              class="mt-7 inline-flex border-b border-white/55 pb-1 text-sm font-medium text-white transition-colors duration-medium hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent active:translate-y-px"
+            >
+              View gallery
+            </a>
+          </div>
         </div>
-        {featuredPhoto && (
-          <a
-            data-animate
-            href={withBase(`photo/${featuredPhoto.id}/`)}
-            class="group hidden overflow-hidden rounded-xl border border-line bg-surface lg:block"
-            style="transition-delay: 220ms"
-            aria-label={`View featured photo ${featuredPhoto.title}`}
-          >
-            <img
-              src={featuredPhoto.thumbnail.src}
-              width={featuredPhoto.thumbnail.width}
-              height={featuredPhoto.thumbnail.height}
-              alt={featuredPhoto.title}
-              class="aspect-[5/3] w-full bg-surfaceSoft object-contain opacity-90 transition duration-slow group-hover:scale-[1.02] group-hover:opacity-100"
-              loading="eager"
-            />
-            <div class="border-t border-line px-4 py-3">
-              <p class="text-xs text-muted">Featured photograph</p>
-              <p class="mt-1 font-display text-lg text-text transition-colors group-hover:text-accent">{featuredPhoto.title}</p>
-              {featuredPhoto.location && <p class="mt-1 text-xs text-muted">{featuredPhoto.location}</p>}
-            </div>
-          </a>
-        )}
-      </div>
-    </section>
+      </section>
+    )}
 
     <GalleryExperience photos={photos} tags={tags} selectedPhotoIds={[...selectedPhotoIds]} />
   </main>
