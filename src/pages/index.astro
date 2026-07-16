@@ -49,7 +49,13 @@ const photos: PhotoViewModel[] = sortedEntries.map((entry, index) => {
 
 const tags = Array.from(new Set(photos.flatMap((photo) => photo.tags))).sort();
 const featuredPhoto = photos.find((photo) => photo.featured) ?? photos[0];
-const heroEntry = sortedEntries.find((entry) => entry.id === "0124113922") ?? sortedEntries[0];
+const selectedPhotoIdSet = new Set<string>(selectedPhotoIds);
+const heroEntries = sortedEntries
+  .filter(
+    (entry) =>
+      selectedPhotoIdSet.has(entry.id) && entry.data.image.width >= entry.data.image.height
+  )
+  .slice(0, 4);
 ---
 
 <BaseLayout
@@ -60,20 +66,27 @@ const heroEntry = sortedEntries.find((entry) => entry.id === "0124113922") ?? so
   <SiteHeader />
 
   <main>
-    {heroEntry && (
+    {heroEntries.length > 0 && (
       <section class="relative isolate min-h-[calc(100dvh-4rem)] overflow-hidden md:min-h-[calc(100dvh-4.5rem)]">
-        <Image
-          src={heroEntry.data.image}
-          alt={heroEntry.data.title || "Sunlight filtering through a forest"}
-          widths={[768, 1280, 1600, 2200]}
-          sizes="100vw"
-          format="webp"
-          quality={84}
-          loading="eager"
-          fetchpriority="high"
-          decoding="async"
-          class="hero-media absolute inset-0 h-full w-full object-cover object-[58%_center]"
-        />
+        {heroEntries.map((entry, index) => (
+          <Image
+            src={entry.data.image}
+            alt=""
+            widths={[768, 1280, 1600, 2200]}
+            sizes="100vw"
+            format="webp"
+            quality={84}
+            loading={index === 0 ? "eager" : "lazy"}
+            fetchpriority={index === 0 ? "high" : "auto"}
+            decoding="async"
+            aria-hidden="true"
+            data-hero-slide
+            class:list={[
+              "hero-media absolute inset-0 h-full w-full object-cover object-center",
+              index === 0 && "is-active"
+            ]}
+          />
+        ))}
         <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,9,8,0.04)_12%,rgba(6,9,8,0.18)_45%,rgba(6,9,8,0.88)_100%)]"></div>
 
         <div class="relative mx-auto flex min-h-[calc(100dvh-4rem)] w-full max-w-[1600px] items-end px-5 pb-12 pt-20 md:min-h-[calc(100dvh-4.5rem)] md:px-8 md:pb-16 lg:px-12">
@@ -92,6 +105,16 @@ const heroEntry = sortedEntries.find((entry) => entry.id === "0124113922") ?? so
             </a>
           </div>
         </div>
+
+        <button
+          hidden
+          type="button"
+          data-hero-toggle
+          class="absolute bottom-5 right-5 border-b border-white/55 pb-1 text-xs font-medium text-white transition-colors duration-medium hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent active:translate-y-px md:bottom-8 md:right-8"
+          aria-label="Pause background slideshow"
+        >
+          Pause
+        </button>
       </section>
     )}
 
@@ -100,3 +123,36 @@ const heroEntry = sortedEntries.find((entry) => entry.id === "0124113922") ?? so
 
   <SiteFooter />
 </BaseLayout>
+
+<script>
+  const heroSlides = Array.from(document.querySelectorAll<HTMLElement>("[data-hero-slide]"));
+  const heroToggle = document.querySelector<HTMLButtonElement>("[data-hero-toggle]");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (heroSlides.length > 1 && heroToggle && !reduceMotion) {
+    let activeIndex = 0;
+    let paused = false;
+
+    const advance = () => {
+      heroSlides[activeIndex].classList.remove("is-active");
+      activeIndex = (activeIndex + 1) % heroSlides.length;
+      heroSlides[activeIndex].classList.add("is-active");
+    };
+
+    const timer = window.setInterval(() => {
+      if (!paused) advance();
+    }, 6500);
+
+    heroToggle.hidden = false;
+    heroToggle.addEventListener("click", () => {
+      paused = !paused;
+      heroToggle.textContent = paused ? "Play" : "Pause";
+      heroToggle.setAttribute(
+        "aria-label",
+        paused ? "Play background slideshow" : "Pause background slideshow"
+      );
+    });
+
+    window.addEventListener("pagehide", () => window.clearInterval(timer), { once: true });
+  }
+</script>
