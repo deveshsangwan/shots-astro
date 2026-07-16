@@ -13,7 +13,7 @@ const escapeXml = (value: string) =>
 export async function getStaticPaths() {
   const photos = await getCollection("photos");
   return photos.map((photo) => ({
-    params: { slug: photo.slug },
+    params: { slug: photo.id },
     props: {
       title: photo.data.title,
       subtitle: photo.data.description || siteConfig.subtitle

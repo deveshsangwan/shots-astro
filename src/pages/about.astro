@@ -1,155 +1,90 @@
 ---
+import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import SiteHeader from "@/components/SiteHeader.astro";
 import SiteFooter from "@/components/SiteFooter.astro";
+import { selectedPhotoIds } from "@/config/portfolio";
 import { siteConfig } from "@/config/site";
 import { withBase } from "@/utils/withBase";
 
 const entries = await getCollection("photos").catch(() => []);
-
-const totalPhotos = entries.length;
-
-const cameraMap = new Map<string, number>();
-entries.forEach((e) => {
-  const cam = e.data.camera;
-  if (cam) cameraMap.set(cam, (cameraMap.get(cam) ?? 0) + 1);
-});
-const cameras = Array.from(cameraMap.entries())
-  .sort((a, b) => b[1] - a[1]);
-
-const tagMap = new Map<string, number>();
-entries.forEach((e) => {
-  e.data.tags.forEach((tag) => tagMap.set(tag, (tagMap.get(tag) ?? 0) + 1));
-});
-const topTags = Array.from(tagMap.entries())
-  .sort((a, b) => b[1] - a[1])
-  .slice(0, 16);
-
-const years = entries.map((e) => e.data.publishedAt.getFullYear());
-const yearRange = years.length > 0
-  ? Math.min(...years) === Math.max(...years)
-    ? String(Math.max(...years))
-    : `${Math.min(...years)}–${Math.max(...years)}`
-  : "—";
-
-const topCamera = cameras.length > 0 ? cameras[0][0] : "—";
-const hasCameraData = cameras.length > 0;
+const sortedEntries = entries.sort(
+  (a, b) => b.data.publishedAt.getTime() - a.data.publishedAt.getTime()
+);
+const entryById = new Map(sortedEntries.map((entry) => [entry.id, entry]));
+const contactSheet = selectedPhotoIds
+  .slice(0, 3)
+  .map((id) => entryById.get(id))
+  .filter((entry): entry is (typeof sortedEntries)[number] => Boolean(entry));
 ---
 
 <BaseLayout title={`About | ${siteConfig.title}`} description={siteConfig.footer.bio}>
   <SiteHeader />
 
-  <main class="mx-auto w-full max-w-6xl px-5 py-12 md:px-8 md:py-20">
-    <!-- Hero -->
-    <div class="relative" data-animate>
-      <p class="relative text-xs tracking-[0.24em] text-muted uppercase">About</p>
-      <h1 class="relative mt-3 max-w-3xl font-display text-5xl leading-tight text-text md:text-7xl">
-        Photography with intent.
-      </h1>
-    </div>
-
-    <!-- Bio + Stats -->
-    <div class="mt-12 grid gap-10 md:grid-cols-[1.4fr_1fr] md:gap-14" data-animate style="transition-delay: 100ms">
-      <div class="space-y-5">
-        <p class="text-base leading-8 text-muted md:text-lg md:leading-9">
-          {siteConfig.footer.bio} I built this portfolio as a fast, clean, and distraction-free space to share frames that matter to me.
-          Every image includes capture metadata and contextual notes to make the story behind the shot as discoverable as the photo itself.
-        </p>
-        <p class="text-base leading-8 text-muted md:text-lg md:leading-9">
-          This site runs on Astro with a file-based workflow so new photographs can be published quickly while keeping full ownership of assets and metadata.
-        </p>
-      </div>
-      <div class="grid grid-cols-2 gap-4 md:self-start">
-        <div class="rounded-xl border border-white/10 bg-surface/70 p-5">
-          <p class="text-xs tracking-[0.2em] text-muted uppercase">Photos</p>
-          <p class="mt-2 font-display text-4xl text-text">{totalPhotos}</p>
+  <main class="mx-auto w-full max-w-[1600px] px-5 py-14 md:px-8 md:py-24 lg:px-12">
+    <section class="grid gap-14 lg:grid-cols-12 lg:items-end lg:gap-8" data-animate>
+      <div class="lg:col-span-5">
+        <h1 class="max-w-3xl font-display text-5xl leading-[0.98] text-text md:text-7xl lg:text-8xl">
+          Places worth returning to.
+        </h1>
+        <div class="mt-8 max-w-xl space-y-5 text-base leading-8 text-muted md:text-lg md:leading-9">
+          <p>
+            I am Devesh, a photographer based in New Delhi. I photograph landscapes, city edges, forests, and mountain roads.
+          </p>
+          <p>
+            Most of this archive was made while travelling through Rajasthan, Uttarakhand, Himachal Pradesh, and Delhi.
+          </p>
         </div>
-        <div class="rounded-xl border border-white/10 bg-surface/70 p-5">
-          <p class="text-xs tracking-[0.2em] text-muted uppercase">Years</p>
-          <p class="mt-2 font-display text-4xl text-text">{yearRange}</p>
-        </div>
-        {hasCameraData && (
-          <div class="col-span-2 rounded-xl border border-white/10 bg-surface/70 p-5">
-            <p class="text-xs tracking-[0.2em] text-muted uppercase">Favorite Camera</p>
-            <p class="mt-2 font-display text-2xl text-text">{topCamera}</p>
-          </div>
-        )}
       </div>
-    </div>
 
-    <!-- Equipment section -->
-    {cameras.length > 0 && (
-      <section class="mt-16 border-t border-white/10 pt-10" data-animate style="transition-delay: 180ms">
-        <h2 class="font-display text-3xl text-text">Equipment</h2>
-        <p class="mt-2 text-sm text-muted">Cameras used across the collection.</p>
-        <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {cameras.map(([name, count]) => (
-            <div class="flex items-center justify-between rounded-xl border border-white/10 bg-surface/60 p-4">
-              <span class="font-medium text-text">{name}</span>
-              <span class="rounded-full bg-white/5 px-3 py-1 text-xs text-muted">{count} {count === 1 ? "photo" : "photos"}</span>
-            </div>
+      {contactSheet.length > 0 && (
+        <div class="grid grid-cols-[1.12fr_0.88fr] gap-2 lg:col-span-7 lg:col-start-6" aria-label="Selected photographs">
+          {contactSheet.map((entry, index) => (
+            <a
+              href={withBase(`photo/${entry.id}/`)}
+              class:list={[
+                "group block overflow-hidden bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+                index === 0 && "row-span-2"
+              ]}
+              aria-label={`View ${entry.data.title || "selected photograph"}`}
+            >
+              <Image
+                src={entry.data.thumbnail ?? entry.data.image}
+                alt={entry.data.title || "Photograph by Devesh Sangwan"}
+                widths={[320, 480, 640]}
+                sizes="(min-width: 1024px) 28vw, 44vw"
+                format="webp"
+                quality={72}
+                class:list={[
+                  "h-full min-h-0 w-full object-cover transition-transform duration-slow group-hover:scale-[1.025]",
+                  index === 0 ? "aspect-[4/5]" : "aspect-[4/3]"
+                ]}
+              />
+            </a>
           ))}
         </div>
-      </section>
-    )}
+      )}
+    </section>
 
-    <!-- Tags cloud -->
-    {topTags.length > 0 && (
-      <section class="mt-16 border-t border-white/10 pt-10" data-animate style="transition-delay: 240ms">
-        <h2 class="font-display text-3xl text-text">Themes</h2>
-        <p class="mt-2 text-sm text-muted">Browse the collection by mood and subject.</p>
-        <div class="mt-6 flex flex-wrap gap-2.5">
-          {topTags.map(([tag, count]) => {
-            const size = count >= 8 ? "text-base px-5 py-2.5" : count >= 4 ? "text-sm px-4 py-2" : "text-xs px-3 py-1.5";
-            return (
-              <a
-                href={`${withBase()}?tag=${encodeURIComponent(tag)}`}
-                class={`rounded-full border border-white/15 text-muted transition-colors hover:border-accent/40 hover:text-accent ${size}`}
-              >
-                {tag}
-                <span class="ml-1.5 text-[10px] opacity-50">{count}</span>
-              </a>
-            );
-          })}
-        </div>
-      </section>
-    )}
+    <section class="mt-24 border-t border-line pt-10 md:mt-32" data-animate>
+      <h2 class="font-display text-4xl leading-tight text-text md:text-6xl">How I photograph</h2>
+      <div class="mt-6 max-w-2xl space-y-4 text-base leading-8 text-muted md:text-lg md:leading-9">
+        <p>I look for changes in weather, distance, and light that make a familiar place feel new.</p>
+        <p>The camera stays secondary. The photograph begins with slowing down long enough to notice.</p>
+      </div>
+    </section>
 
-    <!-- CTA -->
-    <div class="mt-16 border-t border-white/10 pt-10 text-center" data-animate style="transition-delay: 300ms">
-      <p class="font-display text-2xl text-text">Ready to explore?</p>
-      <p class="mx-auto mt-2 max-w-md text-sm text-muted">
-        Open any shot in the lightbox to see the full story behind each frame.
-      </p>
+    <section class="mt-24 border-t border-line pt-10 md:mt-32" data-animate>
+      <p class="max-w-2xl font-display text-4xl leading-tight text-text md:text-6xl">The photographs are the best introduction.</p>
       <a
         href={withBase()}
-        class="mt-6 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-black transition-transform hover:scale-[1.03] active:scale-[0.98]"
+        class="mt-8 inline-flex border-b border-accent pb-1 text-sm font-semibold text-text transition-colors duration-medium hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent active:translate-y-px"
       >
-        Explore the gallery
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        View gallery
       </a>
-    </div>
+    </section>
   </main>
 
-  <script is:inline>
-    {
-      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const elements = document.querySelectorAll("[data-animate]");
-      if (prefersReducedMotion) {
-        elements.forEach((el) => el.classList.add("is-visible"));
-      } else {
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add("is-visible");
-              observer.unobserve(entry.target);
-            }
-          });
-        }, { threshold: 0.05 });
-        elements.forEach((el) => observer.observe(el));
-      }
-    }
-  </script>
   <SiteFooter />
 </BaseLayout>

@@ -6,14 +6,18 @@ export default {
       colors: {
         bg: "rgb(var(--color-bg) / <alpha-value>)",
         surface: "rgb(var(--color-surface) / <alpha-value>)",
+        surfaceSoft: "rgb(var(--color-surface-soft) / <alpha-value>)",
         muted: "rgb(var(--color-muted) / <alpha-value>)",
         text: "rgb(var(--color-text) / <alpha-value>)",
         accent: "rgb(var(--color-accent) / <alpha-value>)",
-        accentSoft: "rgb(var(--color-accent-soft) / <alpha-value>)"
+        accentSoft: "rgb(var(--color-accent-soft) / <alpha-value>)",
+        accentInk: "rgb(var(--color-accent-ink) / <alpha-value>)",
+        line: "rgb(var(--color-line) / <alpha-value>)",
+        lineStrong: "rgb(var(--color-line-strong) / <alpha-value>)"
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
-        display: ["Playfair Display", "Georgia", "Times New Roman", "serif"]
+        sans: ["Avenir Next", "Avenir", "Helvetica Neue", "Helvetica", "Arial", "sans-serif"],
+        display: ["Avenir Next", "Avenir", "Helvetica Neue", "Helvetica", "Arial", "sans-serif"]
       },
       borderRadius: {
         sm: "var(--radius-sm)",
