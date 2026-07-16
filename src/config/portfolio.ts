@@ -19,7 +19,7 @@ export function normalizeCameraName(value?: string) {
 
   const normalized = camera.toLowerCase();
   if (normalized.includes("in2021")) return "OnePlus IN2021";
-  if (normalized.includes("a6000")) return "OnePlus A6000";
+  if (normalized === "a6000" || normalized === "oneplus a6000") return "OnePlus A6000";
   if (normalized === "sony dsc-t90") return "Sony DSC-T90";
   if (normalized === "micromax a110q") return "Micromax A110Q";
 

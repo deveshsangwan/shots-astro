@@ -31,6 +31,7 @@ const jsonLd = {
     name: siteConfig.author
   }
 };
+const serializedJsonLd = JSON.stringify(jsonLd).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
 ---
 
 <!doctype html>
@@ -53,7 +54,7 @@ const jsonLd = {
     {noIndex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" href={withBase("favicon.svg")} type="image/svg+xml" />
     <script is:inline>document.documentElement.classList.add("js");</script>
-    <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />
+    <script type="application/ld+json" is:inline set:html={serializedJsonLd} />
   </head>
   <body class="min-h-[100dvh] bg-bg text-text antialiased">
     <slot />

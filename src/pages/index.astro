@@ -49,12 +49,11 @@ const photos: PhotoViewModel[] = sortedEntries.map((entry, index) => {
 
 const tags = Array.from(new Set(photos.flatMap((photo) => photo.tags))).sort();
 const featuredPhoto = photos.find((photo) => photo.featured) ?? photos[0];
-const selectedPhotoIdSet = new Set<string>(selectedPhotoIds);
-const heroEntries = sortedEntries
-  .filter(
-    (entry) =>
-      selectedPhotoIdSet.has(entry.id) && entry.data.image.width >= entry.data.image.height
-  )
+const entriesById = new Map(sortedEntries.map((entry) => [entry.id, entry]));
+const heroEntries = selectedPhotoIds
+  .map((id) => entriesById.get(id))
+  .filter((entry): entry is (typeof sortedEntries)[number] => Boolean(entry))
+  .filter((entry) => entry.data.image.width >= entry.data.image.height)
   .slice(0, 4);
 ---
 

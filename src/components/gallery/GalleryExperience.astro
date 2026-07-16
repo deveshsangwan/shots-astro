@@ -234,7 +234,9 @@ const photos = [
           return false;
         });
     }
-    return photosPromise;
+    const loaded = await photosPromise;
+    if (!loaded) photosPromise = null;
+    return loaded;
   };
 
   const renderActivePhoto = () => {
@@ -242,8 +244,24 @@ const photos = [
     const currentPhoto = photoRecords.get(filteredPhotoIds[activeIndex]);
     if (!currentPhoto) return false;
 
-    dialogImage.setAttribute("src", currentPhoto.fullSrc);
+    dialogImage.classList.add("hidden");
+    if (dialogStatus) {
+      dialogStatus.textContent = "Loading photograph";
+      dialogStatus.classList.remove("hidden");
+    }
+    dialogImage.onload = () => {
+      dialogStatus?.classList.add("hidden");
+      dialogImage.classList.remove("hidden");
+    };
+    dialogImage.onerror = () => {
+      dialogImage.classList.add("hidden");
+      if (dialogStatus) {
+        dialogStatus.textContent = "The photograph could not be loaded.";
+        dialogStatus.classList.remove("hidden");
+      }
+    };
     dialogImage.setAttribute("alt", currentPhoto.title);
+    dialogImage.setAttribute("src", currentPhoto.fullSrc);
     fill(dialogTitle, currentPhoto.title);
     fill(dialogDescription, currentPhoto.description);
     dialogDescription?.classList.toggle("hidden", !hasValue(currentPhoto.description));
@@ -256,8 +274,6 @@ const photos = [
     fill(dialogIso, currentPhoto.iso, true);
     fill(dialogFocalLength, currentPhoto.focalLength, true);
     fill(dialogPosition, `${activeIndex + 1} / ${filteredPhotoIds.length}`);
-    dialogStatus?.classList.add("hidden");
-    dialogImage.classList.remove("hidden");
     return true;
   };
 
